@@ -39,12 +39,23 @@ void setup() {
 
 
 
-void randomWalk(int time){
+void randomWalk(int length_ms){
+  // Get random speed and directions
   int motorSpeeds[] = { random(max_speed), random(max_speed) };
-  leftMotor->setSpeed(motorSpeeds[0]);
-  rightMotor->setSpeed(motorSpeeds[1]);
   int motorDirections[] = { random(1) == 1, random(1) == 1 };
 
+  // Set motorspeeds and directions
+  leftMotor->setSpeed(motorSpeeds[0]);
+  rightMotor->setSpeed(motorSpeeds[1]);
+  leftMotor->run(motorDirections[0]);
+  rightMotor->run(motorDirections[1]);
+
+  // Wait length_ms
+  delay(length_ms);
+
+  // Turn off motors
+  leftMotor->run(RELEASE);
+  rightMotor->run(RELEASE);
 }
 
 void loop() {
