@@ -42,15 +42,15 @@ void run_motors(float dl_l, float dl_r){
   // dl_l (delta length left) in units: <>
   const long int l_to_ms = 100000;
 
-  float max_l = max(dl_l, dl_r);
+  float max_l = max(abs(dl_l), abs(dl_r));
   if(max_l == 0) return;
 
   Serial.print("run_motors ");
   Serial.print(max_l);
   Serial.print(" ");
-  Serial.print(abs(max_speed * (dl_l/max_l)));
+  Serial.print(max_speed * (dl_l/max_l));
   Serial.print(" ");
-  Serial.print(abs(max_speed * (dl_r/max_l)));
+  Serial.print(max_speed * (dl_r/max_l));
   Serial.print(" ");
   Serial.println(abs(max_l * l_to_ms));
 
