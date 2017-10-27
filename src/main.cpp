@@ -5,10 +5,23 @@
 
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); // Create the motor shield object with the default I2C address
-Adafruit_DCMotor *leftMotor = AFMS.getMotor(3); // Select which 'port' M1, M2, M3 or M4. In this case, M1
-Adafruit_DCMotor *rightMotor = AFMS.getMotor(4);
+Adafruit_DCMotor *rightMotor = AFMS.getMotor(3); // Select which 'port' M1, M2, M3 or M4. In this case, M1
+Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
 
-const int max_speed = 70;
+const int max_speed = 120;
+const long int l_to_ms = 10000;
+const int num_path = 6;
+const float path[][2] =   {{0,  0},
+                          {0,   1},
+                          {0,   0.5},
+                          {0.5, 0.5},
+                          {.5,  1},
+                          {.5,  0}
+                        };
+const float x_scale = 0.1;
+const float y_scale = 0.1;
+
+
 
 float cur_lengths[2] = { 1/sqrt(2), 1/sqrt(2) };
 
@@ -40,7 +53,6 @@ int speed_to_dir(float speed){
 void run_motors(float dl_l, float dl_r){
   // Given dl_l and dl_r, move the motors by that much
   // dl_l (delta length left) in units: <>
-  const long int l_to_ms = 100000;
 
   float max_l = max(abs(dl_l), abs(dl_r));
   if(max_l == 0) return;
@@ -95,14 +107,6 @@ void set_position(float x, float y){
 
   set_lengths(new_length_l, new_length_r);
 }
-
-const int num_path = 4;
-const float path[][2] =   {{0,  0},
-                          {0,   1},
-                          {0,   0.5},
-                          {0.5, 0.5}};
-const float x_scale = 0.1;
-const float y_scale = 0.1;
 
 
 void setup() {
