@@ -10,16 +10,37 @@ Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
 
 const int max_speed = 120;
 const long int l_to_ms = 10000;
-const int num_path = 6;
-const float path[][2] =   {{0,  0},
-                          {0,   1},
-                          {0,   0.5},
-                          {0.5, 0.5},
-                          {.5,  1},
-                          {.5,  0}
+const int num_path = 24;
+const float path[][2] =   {
+  {0,0}, // Init @ origin
+  {2,0}, // P
+  {2,2},
+  {0,2},
+  {0,0},
+  {0,4}, // end P
+  {3,4}, // O
+  {3,1.25},
+  {4.25, 0},
+  {5.25, 0},
+  {6,1.25},
+  {6,2.75},
+  {5.25,4},
+  {4.25,4},
+  {3,2.75},
+  {3,4}, // end O
+  {7,4}, // E
+  {7,0},
+  {9,0},
+  {7,0},
+  {7,2},
+  {9,2},
+  {7,2},
+  {7,4},
+  {9,4}, // end E
+  // {0,0}
                         };
-const float x_scale = 0.1;
-const float y_scale = 0.1;
+const float x_scale = 0.025;
+const float y_scale = -0.025;
 
 
 
@@ -78,8 +99,10 @@ void run_motors(float dl_l, float dl_r){
     delay(10);
   }
 
-  leftMotor->run(RELEASE);
-  rightMotor->run(RELEASE);
+  leftMotor->setSpeed(0);
+  rightMotor->setSpeed(0);
+  // leftMotor->run(RELEASE);
+  // rightMotor->run(RELEASE);
 }
 
 
@@ -121,9 +144,11 @@ void setup() {
     Serial.print(' ');
     Serial.println(path[i][1]);
     set_position((path[i][0] * x_scale) + 0.5, 0.5 - (path[i][1] * y_scale));
-    delay(500);
+    delay(100);
   }
 
+  leftMotor->run(RELEASE);
+  rightMotor->run(RELEASE);
   Serial.println("done!");
 }
 
