@@ -3,14 +3,18 @@
 #include <Adafruit_MS_PWMServoDriver.h>
 
 
-
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); // Create the motor shield object with the default I2C address
 Adafruit_DCMotor *rightMotor = AFMS.getMotor(3); // Select which 'port' M1, M2, M3 or M4. In this case, M1
 Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
 
+// Maximum speed to run motors (1-255)
 const int max_speed = 120;
+
+// Magic number that converts distance to time to drive motors
 const long int l_to_ms = 10000;
-const int num_path = 24;
+
+// Number of points in the path (should be done programatically)
+const int num_path = 25;
 const float path[][2] =   {
   {0,0}, // Init @ origin
   {2,0}, // P
@@ -39,32 +43,17 @@ const float path[][2] =   {
   {9,4}, // end E
   // {0,0}
                         };
+
+// What to scale the path coordinates by
+// Values after scaling should be -.5 to .5
 const float x_scale = 0.025;
 const float y_scale = -0.025;
 
 
-
+// current rope lengths - init at (0,0)
 float cur_lengths[2] = { 1/sqrt(2), 1/sqrt(2) };
 
-
-void drawVertically(bool dir, int time){
-  leftMotor->setSpeed(max_speed);
-  rightMotor->setSpeed(max_speed);
-
-  if(dir){
-    leftMotor->run(FORWARD);
-    rightMotor->run(FORWARD);
-  } else {
-    leftMotor->run(BACKWARD);
-    rightMotor->run(BACKWARD);
-  }
-
-  delay(time);
-
-  leftMotor->run(RELEASE);
-  rightMotor->run(RELEASE);
-}
-
+// Because adafruit motorshield lib is dumb and FORWARD and BACKWARD aren't 1 and -1
 int speed_to_dir(float speed){
   if(speed > 0)  return FORWARD;
   if(speed < 0)  return BACKWARD;
@@ -72,8 +61,8 @@ int speed_to_dir(float speed){
 }
 
 void run_motors(float dl_l, float dl_r){
-  // Given dl_l and dl_r, move the motors by that much
-  // dl_l (delta length left) in units: <>
+  /* Given dl_l and dl_r, move the motors by that much
+   * dl_l (delta length left) in units: <> */
 
   float max_l = max(abs(dl_l), abs(dl_r));
   if(max_l == 0) return;
@@ -99,6 +88,7 @@ void run_motors(float dl_l, float dl_r){
     delay(10);
   }
 
+  // setSpeed(0) means breaking, run(RELEASE) allows motors to coast
   leftMotor->setSpeed(0);
   rightMotor->setSpeed(0);
   // leftMotor->run(RELEASE);
@@ -107,7 +97,7 @@ void run_motors(float dl_l, float dl_r){
 
 
 void set_lengths(float len_l, float len_r){
-  /* Moves the motors to the desired lengths */
+  /* Moves the motors to set the string to the desired lengths */
   Serial.println("setting lr" + String(len_l) + " " + String(len_r));
 
   float delta_l_l = cur_lengths[0] - len_l;
@@ -122,7 +112,8 @@ void set_lengths(float len_l, float len_r){
 void set_position(float x, float y){
   /* Moves the marker to the position x,y
      x and y are floats between (0,1)
-   */
+     Origin is the top left corner */
+  // Note: changing the area from (0,1) requires many constants (refer to mathematica notebook)
   Serial.println("setting xy" + String(x) + " " + String(y));
 
   float new_length_l = sqrt(x*x + y*y);
@@ -143,7 +134,10 @@ void setup() {
     Serial.print(path[i][0]);
     Serial.print(' ');
     Serial.println(path[i][1]);
+    // Lots of messy stuff here.
+    // set_position has origin in the top left, the 0.5's are there to move the origin to the center
     set_position((path[i][0] * x_scale) + 0.5, 0.5 - (path[i][1] * y_scale));
+    // Let the motors stop
     delay(100);
   }
 
