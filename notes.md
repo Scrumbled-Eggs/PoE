@@ -36,3 +36,11 @@ platformio device monitor
 ```
 platformio run --target upload ;and platformio device monitor
 ```
+
+
+# Linux Laser Cutting Toolchain
+
+Visicut + inkscape for lasercutting
+
+# Linux 3D print slicer
+<jared fill this in>
