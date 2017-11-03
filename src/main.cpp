@@ -194,34 +194,37 @@ void run_motors(float dl_l, float dl_r){
   }
   dl_l = abs(dl_l);
   dl_r = abs(dl_r);
+  Serial.println(direction);
+  Serial.println(dl_l);
+  Serial.println(dl_r);
 
   switch(direction) {
-    case 0: contract(dl_l, dl_r);
+    case 0: { contract(dl_l, dl_r);
             Serial.print("contract");
-            break;
+            break; }
     case 1: right(dl_l,dl_r);
             Serial.print("right");
-            break;
+            // break;
     case 2: left(dl_l,dl_r);
             Serial.print("left");
-            break;
+            // break;
     case 3: release(dl_l,dl_r);
             Serial.print("release");
-            break;
+            // break;
   }
 
   // leftMotor->run(speed_to_dir(dl_l));
   // rightMotor->run(speed_to_dir(dl_r));
 
 
-  long start_time = millis();
-  while(millis() < start_time + abs(max_l * l_to_ms)){
-    delay(10);
-  }
+  // long start_time = millis();
+  // while(millis() < start_time + abs(max_l * l_to_ms)){
+  //   delay(10);
+  // }
 
   // setSpeed(0) means breaking, run(RELEASE) allows motors to coast
-  leftMotor->setSpeed(0);
-  rightMotor->setSpeed(0);
+  // leftMotor->setSpeed(0);
+  // rightMotor->setSpeed(0);
   // leftMotor->run(RELEASE);
   // rightMotor->run(RELEASE);
 }
@@ -277,15 +280,15 @@ void setup() {
   leftMotor->setSpeed(12);
   rightMotor->setSpeed(12);
 
-  contract(20, 40);
-  release(40,20);
-  release(20,40);
-  contract(40,20);
+  // contract(20, 40);
+  // release(40,20);
+  // release(20,40);
+  // contract(40,20);
 
-  // run_motors(20,40);
-  // run_motors(-40,-20);
-  // run_motors(-20,-40);
-  // run_motors(40,20);
+  run_motors(40,80);
+  run_motors(-80,-40);
+  run_motors(-40,-80);
+  run_motors(80,40);
 
   // getPath;
   // for(int i = 0; i < num_path; i++){
