@@ -4,8 +4,10 @@
 
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); // Create the motor shield object with the default I2C address
-Adafruit_DCMotor *rightMotor = AFMS.getMotor(3); // Select which 'port' M1, M2, M3 or M4. In this case, M1
-Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
+// Adafruit_DCMotor *rightMotor = AFMS.getMotor(3); // Select which 'port' M1, M2, M3 or M4. In this case, M1
+// Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
+Adafruit_StepperMotor *rightMotor = AFMS.getStepper(200, 1);
+Adafruit_StepperMotor *leftMotor = AFMS.getStepper(200, 2);
 
 // Maximum speed to run motors (1-255)
 const int max_speed = 120;
@@ -49,6 +51,7 @@ const float path[][2] =   {
 const float x_scale = 0.025;
 const float y_scale = -0.025;
 
+int incomingByte = 0;
 
 // current rope lengths - init at (0,0)
 float cur_lengths[2] = { 1/sqrt(2), 1/sqrt(2) };
@@ -58,6 +61,16 @@ int speed_to_dir(float speed){
   if(speed > 0)  return FORWARD;
   if(speed < 0)  return BACKWARD;
   return RELEASE;
+}
+
+int* getPath() {
+  while (Serial.available() > 0) {
+    incomingByte = Serial.read();
+
+    // say what you got:
+    Serial.print("I received: ");
+    Serial.println(incomingByte, DEC);
+  }
 }
 
 void run_motors(float dl_l, float dl_r){
@@ -79,8 +92,8 @@ void run_motors(float dl_l, float dl_r){
   leftMotor->setSpeed(abs(max_speed * (dl_l/max_l)));
   rightMotor->setSpeed(abs(max_speed * (dl_r/max_l)));
 
-  leftMotor->run(speed_to_dir(dl_l));
-  rightMotor->run(speed_to_dir(dl_r));
+  // leftMotor->run(speed_to_dir(dl_l));
+  // rightMotor->run(speed_to_dir(dl_r));
 
 
   long start_time = millis();
@@ -130,19 +143,26 @@ void setup() {
 
   Serial.println("begin.");
 
-  for(int i = 0; i < num_path; i++){
-    Serial.print(path[i][0]);
-    Serial.print(' ');
-    Serial.println(path[i][1]);
-    // Lots of messy stuff here.
-    // set_position has origin in the top left, the 0.5's are there to move the origin to the center
-    set_position((path[i][0] * x_scale) + 0.5, 0.5 - (path[i][1] * y_scale));
-    // Let the motors stop
-    delay(100);
-  }
+  // getPath;
+  // for(int i = 0; i < num_path; i++){
+  //   Serial.print(path[i][0]);
+  //   Serial.print(' ');
+  //   Serial.println(path[i][1]);
+  //   // Lots of messy stuff here.
+  //   // set_position has origin in the top left, the 0.5's are there to move the origin to the center
+  //   set_position((path[i][0] * x_scale) + 0.5, 0.5 - (path[i][1] * y_scale));
+  //   // Let the motors stop
+  //   delay(100);
+  // }
+  leftMotor->setSpeed(12);
+  rightMotor->setSpeed(12);
 
-  leftMotor->run(RELEASE);
-  rightMotor->run(RELEASE);
+  leftMotor->step(50, FORWARD, DOUBLE);
+  rightMotor->step(50, FORWARD, DOUBLE);
+
+
+  leftMotor->release();
+  rightMotor->release();
   Serial.println("done!");
 }
 
