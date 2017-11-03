@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include <Adafruit_MotorShield.h>
 #include <Adafruit_MS_PWMServoDriver.h>
+#include <AccelStepper.h>
 
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); // Create the motor shield object with the default I2C address
@@ -55,6 +56,25 @@ int incomingByte = 0;
 
 // current rope lengths - init at (0,0)
 float cur_lengths[2] = { 1/sqrt(2), 1/sqrt(2) };
+
+void forwardStepRight() {
+  rightMotor->onestep(FORWARD, DOUBLE);
+}
+
+void backwardStepRight() {
+  rightMotor->onestep(BACKWARD, DOUBLE);
+}
+
+void forwardStepLeft() {
+  leftMotor->onestep(FORWARD, DOUBLE);
+}
+
+void backwardStepLeft() {
+  leftMotor->onestep(BACKWARD, DOUBLE);
+}
+
+AccelStepper rightStepper(forwardStepRight, backwardStepRight);
+AccelStepper leftStepper(forwardStepLeft, backwardStepLeft);
 
 // Because adafruit motorshield lib is dumb and FORWARD and BACKWARD aren't 1 and -1
 int speed_to_dir(float speed){
@@ -154,12 +174,21 @@ void setup() {
   //   // Let the motors stop
   //   delay(100);
   // }
-  leftMotor->setSpeed(12);
-  rightMotor->setSpeed(12);
 
-  leftMotor->step(50, FORWARD, DOUBLE);
-  rightMotor->step(50, FORWARD, DOUBLE);
 
+  // leftMotor->setSpeed(12);
+  // rightMotor->setSpeed(12);
+
+  leftMotor->step(150, BACKWARD, DOUBLE);
+  rightMotor->step(150, FORWARD, DOUBLE);
+
+// Accel library Test
+  // leftStepper.setMaxSpeed(200.0);
+  // rightStepper.setMaxSpeed(200.0);
+  // leftStepper.setAcceleration(100.0);
+  // rightStepper.setAcceleration(100.0);
+  // leftStepper.moveTo(24);
+  // rightStepper.moveTo(24);
 
   leftMotor->release();
   rightMotor->release();
