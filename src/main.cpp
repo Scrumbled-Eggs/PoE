@@ -285,10 +285,10 @@ void setup() {
   // release(20,40);
   // contract(40,20);
 
-  run_motors(40,80);
-  run_motors(-80,-40);
-  run_motors(-40,-80);
-  run_motors(80,40);
+  // run_motors(40,80);
+  // run_motors(-80,-40);
+  // run_motors(-40,-80);
+  // run_motors(80,40);
 
   // getPath;
   // for(int i = 0; i < num_path; i++){
