@@ -1,7 +1,6 @@
 #include "Arduino.h"
 #include <Adafruit_MotorShield.h>
 #include <Adafruit_MS_PWMServoDriver.h>
-#include <AccelStepper.h>
 
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); // Create the motor shield object with the default I2C address
@@ -53,28 +52,102 @@ const float x_scale = 0.025;
 const float y_scale = -0.025;
 
 int incomingByte = 0;
+int ratio = 0;
+
+void contract(int lSteps, int rSteps){
+  while((lSteps > 0) || (rSteps > 0)) {
+    if(rSteps>lSteps) {
+      ratio = rSteps/lSteps;
+      for(int i = 0; i <ratio; i++) {
+        rightMotor->step(1, FORWARD, DOUBLE); //should just run the # of steps
+        rSteps--;
+      }
+      leftMotor->step(1, FORWARD, DOUBLE);
+      lSteps--;
+    }
+    if(lSteps>rSteps) {
+      ratio = lSteps/rSteps;
+      for(int i = 0; i <ratio; i++) {
+        leftMotor->step(1, FORWARD, DOUBLE); //should just run the # of steps
+        lSteps--;
+      }
+      rightMotor->step(1, FORWARD, DOUBLE);
+      rSteps--;
+    }
+  }
+}
+
+void release(int lSteps, int rSteps){
+  while((lSteps > 0) || (rSteps > 0)) {
+    if(rSteps>lSteps) {
+      ratio = rSteps/lSteps;
+      for(int i = 0; i <ratio; i++) {
+        rightMotor->step(1, BACKWARD, DOUBLE); //should just run the # of steps
+        rSteps--;
+      }
+      leftMotor->step(1, BACKWARD, DOUBLE);
+      lSteps--;
+    }
+    if(lSteps>rSteps) {
+      ratio = lSteps/rSteps;
+      for(int i = 0; i <ratio; i++) {
+        leftMotor->step(1, BACKWARD, DOUBLE); //should just run the # of steps
+        lSteps--;
+      }
+      rightMotor->step(1, BACKWARD, DOUBLE);
+      rSteps--;
+    }
+  }
+}
+
+void right(int lSteps, int rSteps){
+  while((lSteps > 0) || (rSteps > 0)) {
+    if(rSteps>lSteps) {
+      ratio = rSteps/lSteps;
+      for(int i = 0; i <ratio; i++) {
+        rightMotor->step(1, FORWARD, DOUBLE); //should just run the # of steps
+        rSteps--;
+      }
+      leftMotor->step(1, BACKWARD, DOUBLE);
+      lSteps--;
+    }
+    if(lSteps>rSteps) {
+      ratio = lSteps/rSteps;
+      for(int i = 0; i <ratio; i++) {
+        leftMotor->step(1, BACKWARD, DOUBLE); //should just run the # of steps
+        lSteps--;
+      }
+      rightMotor->step(1, FORWARD, DOUBLE);
+      rSteps--;
+    }
+  }
+}
+
+void left(int lSteps, int rSteps){
+  while((lSteps > 0) || (rSteps > 0)) {
+    if(rSteps>lSteps) {
+      ratio = rSteps/lSteps;
+      for(int i = 0; i <ratio; i++) {
+        rightMotor->step(1, BACKWARD, DOUBLE); //should just run the # of steps
+        rSteps--;
+      }
+      leftMotor->step(1, FORWARD, DOUBLE);
+      lSteps--;
+    }
+    if(lSteps>rSteps) {
+      ratio = lSteps/rSteps;
+      for(int i = 0; i <ratio; i++) {
+        leftMotor->step(1, FORWARD, DOUBLE); //should just run the # of steps
+        lSteps--;
+      }
+      rightMotor->step(1, BACKWARD, DOUBLE);
+      rSteps--;
+    }
+  }
+}
 
 // current rope lengths - init at (0,0)
 float cur_lengths[2] = { 1/sqrt(2), 1/sqrt(2) };
-
-void forwardStepRight() {
-  rightMotor->onestep(FORWARD, DOUBLE);
-}
-
-void backwardStepRight() {
-  rightMotor->onestep(BACKWARD, DOUBLE);
-}
-
-void forwardStepLeft() {
-  leftMotor->onestep(FORWARD, DOUBLE);
-}
-
-void backwardStepLeft() {
-  leftMotor->onestep(BACKWARD, DOUBLE);
-}
-
-AccelStepper rightStepper(forwardStepRight, backwardStepRight);
-AccelStepper leftStepper(forwardStepLeft, backwardStepLeft);
 
 // Because adafruit motorshield lib is dumb and FORWARD and BACKWARD aren't 1 and -1
 int speed_to_dir(float speed){
@@ -101,16 +174,41 @@ void run_motors(float dl_l, float dl_r){
   if(max_l == 0) return;
 
   Serial.print("run_motors ");
-  Serial.print(max_l);
-  Serial.print(" ");
-  Serial.print(max_speed * (dl_l/max_l));
-  Serial.print(" ");
-  Serial.print(max_speed * (dl_r/max_l));
-  Serial.print(" ");
-  Serial.println(abs(max_l * l_to_ms));
+  // Serial.print(max_l);
+  // Serial.print(" ");
+  // Serial.print(max_speed * (dl_l/max_l));
+  // Serial.print(" ");
+  // Serial.print(max_speed * (dl_r/max_l));
+  // Serial.print(" ");
+  // Serial.println(abs(max_l * l_to_ms));
 
-  leftMotor->setSpeed(abs(max_speed * (dl_l/max_l)));
-  rightMotor->setSpeed(abs(max_speed * (dl_r/max_l)));
+  // leftMotor->setSpeed(abs(max_speed * (dl_l/max_l)));
+  // rightMotor->setSpeed(abs(max_speed * (dl_r/max_l)));
+  int direction = 0;
+  if (dl_r < 0) {
+    direction++;
+  }
+  if (dl_l < 0) {
+    direction++;
+    direction++;
+  }
+  dl_l = abs(dl_l);
+  dl_r = abs(dl_r);
+
+  switch(direction) {
+    case 0: contract(dl_l, dl_r);
+            Serial.print("contract");
+            break;
+    case 1: right(dl_l,dl_r);
+            Serial.print("right");
+            break;
+    case 2: left(dl_l,dl_r);
+            Serial.print("left");
+            break;
+    case 3: release(dl_l,dl_r);
+            Serial.print("release");
+            break;
+  }
 
   // leftMotor->run(speed_to_dir(dl_l));
   // rightMotor->run(speed_to_dir(dl_r));
@@ -131,7 +229,7 @@ void run_motors(float dl_l, float dl_r){
 
 void set_lengths(float len_l, float len_r){
   /* Moves the motors to set the string to the desired lengths */
-  Serial.println("setting lr" + String(len_l) + " " + String(len_r));
+  // Serial.println("setting lr" + String(len_l) + " " + String(len_r));
 
   float delta_l_l = cur_lengths[0] - len_l;
   float delta_l_r = cur_lengths[1] - len_r;
@@ -147,7 +245,7 @@ void set_position(float x, float y){
      x and y are floats between (0,1)
      Origin is the top left corner */
   // Note: changing the area from (0,1) requires many constants (refer to mathematica notebook)
-  Serial.println("setting xy" + String(x) + " " + String(y));
+  // Serial.println("setting xy" + String(x) + " " + String(y));
 
   float new_length_l = sqrt(x*x + y*y);
   float new_length_r = sqrt(1 - 2*x + x*x + y*y);
@@ -176,19 +274,43 @@ void setup() {
   // }
 
 
-  // leftMotor->setSpeed(12);
-  // rightMotor->setSpeed(12);
+  leftMotor->setSpeed(12);
+  rightMotor->setSpeed(12);
 
-  leftMotor->step(150, BACKWARD, DOUBLE);
-  rightMotor->step(150, FORWARD, DOUBLE);
+  contract(20, 40);
+  release(40,20);
+  release(20,40);
+  contract(40,20);
 
-// Accel library Test
-  // leftStepper.setMaxSpeed(200.0);
-  // rightStepper.setMaxSpeed(200.0);
-  // leftStepper.setAcceleration(100.0);
-  // rightStepper.setAcceleration(100.0);
-  // leftStepper.moveTo(24);
-  // rightStepper.moveTo(24);
+  // run_motors(20,40);
+  // run_motors(-40,-20);
+  // run_motors(-20,-40);
+  // run_motors(40,20);
+
+  // getPath;
+  // for(int i = 0; i < num_path; i++){
+  //   // Serial.print(path[i][0]);
+  //   // Serial.print(' ');
+  //   // Serial.println(path[i][1]);
+  //   // Lots of messy stuff here.
+  //   // set_position has origin in the top left, the 0.5's are there to move the origin to the center
+  //   set_position((path[i][0] * x_scale) + 0.5, 0.5 - (path[i][1] * y_scale));
+  //   // Let the motors stop
+  //   delay(100);
+  // }
+
+
+  // // right(150);
+  // Forward is anti-clockwise
+  // // Backward is anti-clockwise
+  // leftMotor->step(150, FORWARD, DOUBLE);
+  // delay(100);
+  // leftMotor->step(150, BACKWARD, DOUBLE);
+  // // leftMotor->step(450, BACKWARD, INTERLEAVE);
+  // rightMotor->step(50, FORWARD, DOUBLE);
+  // delay(100);
+  // // rightMotor->setSpeed(-12);
+  // rightMotor->step(50, BACKWARD, DOUBLE);
 
   leftMotor->release();
   rightMotor->release();
