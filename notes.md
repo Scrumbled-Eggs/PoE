@@ -44,3 +44,10 @@ Visicut + inkscape for lasercutting
 
 # Linux 3D print slicer
 <jared fill this in>
+
+
+# Stepper Motors
+
+IGNORE THE DATASHEET!
+
+Red-Black and Green-Blue are the coil pairs.
