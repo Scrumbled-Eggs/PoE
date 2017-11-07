@@ -65,7 +65,8 @@ void contract(int lSteps, int rSteps){
       leftMotor->step(1, FORWARD, DOUBLE);
       lSteps--;
     }
-    if(lSteps>rSteps) {
+    // if(lSteps>rSteps) {
+    else {
       ratio = lSteps/rSteps;
       for(int i = 0; i <ratio; i++) {
         leftMotor->step(1, FORWARD, DOUBLE); //should just run the # of steps
@@ -88,7 +89,8 @@ void release(int lSteps, int rSteps){
       leftMotor->step(1, BACKWARD, DOUBLE);
       lSteps--;
     }
-    if(lSteps>rSteps) {
+    // if(lSteps>rSteps) {
+    else {
       ratio = lSteps/rSteps;
       for(int i = 0; i <ratio; i++) {
         leftMotor->step(1, BACKWARD, DOUBLE); //should just run the # of steps
@@ -111,7 +113,8 @@ void right(int lSteps, int rSteps){
       leftMotor->step(1, BACKWARD, DOUBLE);
       lSteps--;
     }
-    if(lSteps>rSteps) {
+    // if(lSteps>rSteps) {
+    else {
       ratio = lSteps/rSteps;
       for(int i = 0; i <ratio; i++) {
         leftMotor->step(1, BACKWARD, DOUBLE); //should just run the # of steps
@@ -134,7 +137,8 @@ void left(int lSteps, int rSteps){
       leftMotor->step(1, FORWARD, DOUBLE);
       lSteps--;
     }
-    if(lSteps>rSteps) {
+    // if(lSteps>rSteps) {
+    else {
       ratio = lSteps/rSteps;
       for(int i = 0; i <ratio; i++) {
         leftMotor->step(1, FORWARD, DOUBLE); //should just run the # of steps
@@ -194,23 +198,25 @@ void run_motors(float dl_l, float dl_r){
   }
   dl_l = abs(dl_l);
   dl_r = abs(dl_r);
-  Serial.println(direction);
-  Serial.println(dl_l);
-  Serial.println(dl_r);
+  Serial.print(direction);
+  Serial.print(" ");
+  Serial.print(dl_l);
+  Serial.print(" ");
+  Serial.print(dl_r);
 
   switch(direction) {
     case 0: { contract(dl_l, dl_r);
-            Serial.print("contract");
+            Serial.println(" contract");
             break; }
-    case 1: right(dl_l,dl_r);
-            Serial.print("right");
-            // break;
-    case 2: left(dl_l,dl_r);
-            Serial.print("left");
-            // break;
-    case 3: release(dl_l,dl_r);
-            Serial.print("release");
-            // break;
+    case 1: { right(dl_l,dl_r);
+            Serial.println(" right");
+            break; }
+    case 2: { left(dl_l,dl_r);
+            Serial.println(" left");
+            break; }
+    case 3: { release(dl_l,dl_r);
+            Serial.println(" release");
+            break; }
   }
 
   // leftMotor->run(speed_to_dir(dl_l));
@@ -232,12 +238,16 @@ void run_motors(float dl_l, float dl_r){
 
 void set_lengths(float len_l, float len_r){
   /* Moves the motors to set the string to the desired lengths */
-  // Serial.println("setting lr" + String(len_l) + " " + String(len_r));
+  Serial.println("current lr" + String(cur_lengths[0]) + " " + String(cur_lengths[1]));
+  Serial.println("setting lr" + String(len_l) + " " + String(len_r));
 
   float delta_l_l = cur_lengths[0] - len_l;
   float delta_l_r = cur_lengths[1] - len_r;
+  // int delta_l_l = cur_lengths[0] - len_l;
+  // int delta_l_r = cur_lengths[1] - len_r;
 
   run_motors(delta_l_l, delta_l_r);
+  // run_motors(40, 40);
 
   cur_lengths[0] = len_l;
   cur_lengths[1] = len_r;
@@ -290,17 +300,25 @@ void setup() {
   // run_motors(-40,-80);
   // run_motors(80,40);
 
-  // getPath;
-  // for(int i = 0; i < num_path; i++){
-  //   // Serial.print(path[i][0]);
-  //   // Serial.print(' ');
-  //   // Serial.println(path[i][1]);
-  //   // Lots of messy stuff here.
-  //   // set_position has origin in the top left, the 0.5's are there to move the origin to the center
-  //   set_position((path[i][0] * x_scale) + 0.5, 0.5 - (path[i][1] * y_scale));
-  //   // Let the motors stop
-  //   delay(100);
-  // }
+  // run_motors(40,45);
+  // run_motors(-40,-45);
+
+  // set_lengths(10, 10);
+  // set_lengths(40, 40);
+  // set_lengths(40,45);
+  // set_lengths(-40,-45);
+
+  getPath;
+  for(int i = 0; i < num_path; i++){
+    // Serial.print(path[i][0]);
+    // Serial.print(' ');
+    // Serial.println(path[i][1]);
+    // Lots of messy stuff here.
+    // set_position has origin in the top left, the 0.5's are there to move the origin to the center
+    set_position(((path[i][0] * x_scale) + 50)*1000, 1000*(0.5 - (path[i][1] * y_scale)));
+    // Let the motors stop
+    delay(100);
+  }
 
 
   // // right(150);
