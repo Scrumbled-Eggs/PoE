@@ -1,3 +1,18 @@
+# Coordinate Systems
+**width** = int mm
+
+**string lengths:** int stepper_motors_steps
+
+**mm_to_steps:** float [magic number from calibration]
+
+### artboard:
+**x,y:** floats 0-100
+
+**top left** - [0,0]
+
+**top right** - [100, 100]
+
+
 # Installing platformIO:
 ```
 sudo pip install -U platformio
