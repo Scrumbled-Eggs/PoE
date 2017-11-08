@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include <Servo.h>
 #include <Adafruit_MotorShield.h>
 #include <Adafruit_MS_PWMServoDriver.h>
 
@@ -8,6 +9,9 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield(); // Create the motor shield o
 // Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
 Adafruit_StepperMotor *rightMotor = AFMS.getStepper(200, 1);
 Adafruit_StepperMotor *leftMotor = AFMS.getStepper(200, 2);
+
+Servo tool_servo;
+const int servo_pin = 9;
 
 // Maximum speed to run motors (1-255)
 const int max_speed = 120;
@@ -140,29 +144,18 @@ void setup() {
   Serial.begin(9600);
 
   AFMS.begin();
+  tool_servo.attach(servo_pin);
 
   Serial.println("begin.");
 
-  // getPath;
-  // for(int i = 0; i < num_path; i++){
-  //   Serial.print(path[i][0]);
-  //   Serial.print(' ');
-  //   Serial.println(path[i][1]);
-  //   // Lots of messy stuff here.
-  //   // set_position has origin in the top left, the 0.5's are there to move the origin to the center
-  //   set_position((path[i][0] * x_scale) + 0.5, 0.5 - (path[i][1] * y_scale));
-  //   // Let the motors stop
-  //   delay(100);
-  // }
-  leftMotor->setSpeed(12);
-  rightMotor->setSpeed(12);
+  tool_servo.write(90);
+  delay(1000);
+  tool_servo.write(45);
+  delay(1000);
+  tool_servo.write(90);
+  delay(1000);
+  tool_servo.write(135);
 
-  leftMotor->step(50, FORWARD, DOUBLE);
-  rightMotor->step(50, FORWARD, DOUBLE);
-
-
-  leftMotor->release();
-  rightMotor->release();
   Serial.println("done!");
 }
 
