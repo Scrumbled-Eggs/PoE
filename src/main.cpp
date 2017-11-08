@@ -126,6 +126,7 @@ void set_lengths(int len_l, int len_r){
   int delta_l_r = cur_lengths[1] - len_r;
 
   run_motors(delta_l_l, delta_l_r);
+  // run_motors(40, 40);
 
   cur_lengths[0] = len_l;
   cur_lengths[1] = len_r;
