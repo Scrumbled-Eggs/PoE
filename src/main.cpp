@@ -20,7 +20,7 @@ const int max_speed = 12;
 const int interspool_spacing = 1000;
 
 // Conversion from mm to stepper motor steps
-const float mm_to_steps = 144.0 /* Circumference in mm */ / 200 /* steps per rotation */;
+const float steps_per_mm = 200 /* steps per rotation */ / 144.0 /* Circumference in mm */;
 
 // Artboard size
 const int max_dim = 100;
@@ -67,7 +67,7 @@ const float path[][2] =   {
 
 
 // current cable lengths
-const int init_rope_length = (interspool_spacing/sqrt(2)) * mm_to_steps;
+const int init_rope_length = (interspool_spacing/sqrt(2)) * steps_per_mm;
 int cur_lengths[2] = { init_rope_length, init_rope_length };
 
 // Because adafruit motorshield lib is dumb and FORWARD and BACKWARD aren't 1 and -1
@@ -144,7 +144,7 @@ void run_motors(int dl_l, int dl_r){
 
 
 void set_lengths(int len_l, int len_r){
-  /* Moves the motors to set the string to the desired lengths */
+  /* Moves the motors to set the string to the desired lengths in steps */
 
   int delta_l_l = cur_lengths[0] - len_l;
   int delta_l_r = cur_lengths[1] - len_r;
@@ -164,8 +164,8 @@ void set_position(float x, float y){
 
   // Serial.println("setting xy" + String(x) + " " + String(y));
 
-  float new_length_l = sqrt(x*x + y*y) * artboard_to_mm * mm_to_steps;
-  float new_length_r = sqrt((max_dim - x)*(max_dim - x) + y*y) * artboard_to_mm * mm_to_steps;
+  float new_length_l = sqrt(x*x + y*y) * artboard_to_mm * steps_per_mm;
+  float new_length_r = sqrt((max_dim - x)*(max_dim - x) + y*y) * artboard_to_mm * steps_per_mm;
 
   set_lengths(new_length_l, new_length_r);
 }
