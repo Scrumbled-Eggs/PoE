@@ -1,70 +1,41 @@
-# from svg.path import parse_path, Path, Line, Arc, CubicBezier, QuadraticBezier
-# svgLinePath = 'M 100 100 L 300 100 L 200 300 z'
-# svgArcPath = ''
-# arcPath = Path(QuadraticBezier(300+100j, 200+200j, 200+300j))
-# print(arcPath.point(0))
-# print(arcPath.point(.25))
-# print(arcPath.point(.5))
-# print(arcPath.point(.75))
-# print(arcPath.point(1))
-# path = parse_path(svgLinePath)
-
-# max is area is 100,100 to 300, 300
-# draw area is 0 - 9
-
-# from xml.dom import minidom
-
-# poesvg = open('PoE.svg', 'r')
-
-# doc = minidom.parse(poesvg)  # parseString also exists
-# path_strings = [path.getAttribute('d') for path
-#         in doc.getElementsByTagName('path')]
-# doc.unlink()
-
-# import re
-# mode = 0
-# toSend = ""
-
 import serial
-# path = parse_path(path_strings)
-# print(path)
+from svgpathtools import svg2paths, wsvg, Line, QuadraticBezier
+from xml.dom import minidom
 
-from svgpathtools import svg2paths, wsvg
+lineType = type(Line(start=(0+0j),end=(1,1j)))
+quadType = type(QuadraticBezier(start=(0+0j), control=(.5+.5j), end=(1+1j)))
+
+poesvg = open('PoE.svg', 'r')
+
+doc = minidom.parse(poesvg)  # parseString also exists
+viewBox = [el.getAttribute('viewBox') for el
+        in doc.getElementsByTagName('svg')]
+doc.unlink()
+print(viewBox) # maps to 0 0 100 100 on our coordinates
+
+def pointScale(viewBox, point):
+    # This is bad but I'm under time pressure again
+    minx = float(viewBox[0].split()[0])
+    miny = float(viewBox[0].split()[1])
+    maxx = float(viewBox[0].split()[2])
+    maxy = float(viewBox[0].split()[3])
+    xScale = 100/(maxx-minx)
+    yScale = 100/(maxy-miny)
+    scale = min(xScale, yScale)
+    return(point.real *scale, point.imag*scale)
 
 paths, attributes = svg2paths('PoE.svg')
 for path in paths:
-    print(path)
-    print('\n')
+    for seg in path:
+        if(type(seg)==lineType):
+            print(pointScale(viewBox, seg.point(0)))
+            print(pointScale(viewBox, seg.point(1)))
+        if(type(seg)==quadType):
+            for x in range(0,10):
+                print(pointScale(viewBox, seg.point(x/10.)))
+        print('\n')
 
-# cxn = serial.Serial('/dev/tty.usbserial', baudrate=9600)
+# pointScale(viewBox, 't')
+cxn = serial.Serial('/dev/tty0', baudrate=9600)
 
-# for thing in path_strings:
-#     ops = re.sub( r"(\W+[,])", r" \1", thing).split()
-#     for op in ops:
-#         if len(op) == 1:
-#             mode = op
-#             toSend = mode
-#             # Send the mode the arduino is in
-#         elif mode = m:
-#             toSend = op
-#             # Send a signle point to move to
-#         elif mode = q:
-
-#         print(op)
-#         # If op == letter and mode == m, set zreturn = current_position
-
-#         # cxn.write([op])
-
-
-# for el in path: 
-#     # print(el.point(0)) 
-#     # print(el.point(1))
-#     start = el.point(0)
-#     end = el.point(1)
-#     startx = start.real
-#     startx -= 100
-#     startx = startx* (9.0/200)
-#     starty = start.imag
-#     starty -= 100
-#     starty = starty* (9.0/200)
-    #print('{' + str(startx) + ',' + str(starty) + '}')
+cxn.write('hi')
