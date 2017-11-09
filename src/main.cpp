@@ -10,14 +10,14 @@ Adafruit_StepperMotor *rightMotor = AFMS.getStepper(200, 1);
 Adafruit_StepperMotor *leftMotor = AFMS.getStepper(200, 2);
 
 Servo tool_servo;
-const int servo_pin = 9;
+const int servo_pin = 9; // Only 9 & 10 are supported
 
 
 // Maximum speed to run motors
 const int max_speed = 12;
 
 // Width between spools in mm
-const int interspool_spacing = 900;
+const int interspool_spacing = 1000;
 
 // Conversion from mm to stepper motor steps
 const float mm_to_steps = 144.0 /* Circumference in mm */ / 200 /* steps per rotation */;
@@ -28,28 +28,30 @@ const int artboard_to_mm = interspool_spacing / max_dim;
 
 // Old test path code, please remove
 // Units are in width/artboard_dims mm
-const float x_scale = 1;
-const float y_scale = -1;
+const float x_scale = 2;
+const float y_scale = -2;
 
-const int num_path = 25;
+const int num_path = 29;
 const float path[][2] =   {
   {0,0}, // Init @ origin
+  {-10,0},
   {2,0}, // P
   {2,2},
   {0,2},
+  {-20,0},
   {0,0},
+  {-10,0},
   {0,4}, // end P
+  {-20,0},
   {3,4}, // O
-  {3,1.25},
-  {4.25, 0},
-  {5.25, 0},
-  {6,1.25},
-  {6,2.75},
-  {5.25,4},
-  {4.25,4},
-  {3,2.75},
+  {-10,0},
+  {3,0},
+  {6,0},
+  {6,4},
   {3,4}, // end O
+  {-20,0},
   {7,4}, // E
+  {-10,0},
   {7,0},
   {9,0},
   {7,0},
@@ -58,7 +60,8 @@ const float path[][2] =   {
   {7,2},
   {7,4},
   {9,4}, // end E
-  // {0,0}
+  {-20,0},
+  {0,0}
 };
 
 
@@ -93,6 +96,10 @@ void run_motors(int dl_l, int dl_r){
 
   /* TODO: Rewrite to run both steppers at the same time, with their speeds modulated to make slope.
            This will probably require acceleration for ramping up and down */
+  Serial.print("motors: ");
+  Serial.print(dl_l);
+  Serial.print(" ");
+  Serial.println(dl_r);
 
   if(dl_l == 0 && dl_r == 0) return;
 
@@ -105,20 +112,33 @@ void run_motors(int dl_l, int dl_r){
 
   while ((l_steps > 0) || (r_steps > 0)) {
     // Sets the smaller step to 1 and the larger step to ratio between r_steps and l_steps
+    // Serial.print(l_steps);
+    // Serial.print(" ");
+    // Serial.print(r_steps);
+    // Serial.print(" ");
+
     if (l_steps > r_steps){
-      dl = max(l_steps, 1);
-      dr = r_steps / l_steps;
+      dl = l_steps / r_steps;
+      dr = min(r_steps, 1);
     }
     else {
-      dl = l_steps / r_steps;
-      dr = max(r_steps, 1);
+      dl = min(l_steps, 1);
+      dr = r_steps / l_steps;
     }
+
+    // Serial.print(dl);
+    // Serial.print(" ");
+    // Serial.print(dr);
+    // Serial.print(" ");
 
     rightMotor->step(dl, l_to_dir(dl_r), DOUBLE);
     leftMotor->step(dr, l_to_dir(dl_l), DOUBLE);
 
     l_steps -= dl;
     r_steps -= dr;
+    // Serial.print(l_steps);
+    // Serial.print(" ");
+    // Serial.println(r_steps);
   }
 }
 
@@ -155,32 +175,40 @@ void setup() {
   Serial.begin(9600);
 
   AFMS.begin();
+  leftMotor->setSpeed(max_speed);
+  rightMotor->setSpeed(max_speed);
+
+  rightMotor->step(1, FORWARD, DOUBLE);
+  leftMotor->step(1, FORWARD, DOUBLE);
+
   tool_servo.attach(servo_pin);
+  tool_servo.write(48);
 
   Serial.println("begin.");
+  Serial.println(init_rope_length);
 
-  tool_servo.write(90);
-  delay(1000);
-  tool_servo.write(45);
-  delay(1000);
-  tool_servo.write(90);
-  delay(1000);
-  tool_servo.write(135);
-
-  // leftMotor->setSpeed(max_speed);
-  // rightMotor->setSpeed(max_speed);
-  //
-  // // Run through the hard coded path
-  // for(int i = 0; i < num_path; i++){
-  //   Serial.print(path[i][0]);
-  //   Serial.print(' ');
-  //   Serial.println(path[i][1]);
-  //   // Lots of messy stuff here.
-  //   // The 50's are there to move the origin of the path to the center of the board
-  //   set_position((path[i][0] * x_scale) + 50, 50 - (path[i][1] * y_scale));
-  //   // Let the motors rest
-  //   delay(10);
-  // }
+  // Run through the hard coded path
+  for(int i = 0; i < num_path; i++){
+    // Lots of messy stuff here.
+    // The 50's are there to move the origin of the path to the center of the board
+    if (path[i][0] == -10){
+      tool_servo.write(90);
+      Serial.println("Marker Down");
+      delay(500);
+    } else if (path[i][0] == -20){
+      tool_servo.write(48);
+      Serial.println("Marker Up");
+      delay(500);
+    } else {
+      Serial.print(path[i][0] * x_scale);
+      Serial.print(' ');
+      Serial.print(path[i][1] * y_scale);
+      Serial.print(' ');
+      set_position((path[i][0] * x_scale) + 50, 50 - (path[i][1] * y_scale));
+    }
+    // Let the motors rest
+    delay(10);
+  }
   //
   // leftMotor->release();
   // rightMotor->release();
