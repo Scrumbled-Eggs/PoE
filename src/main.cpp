@@ -6,8 +6,8 @@
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); // Create the motor shield object with the default I2C address
 
-Adafruit_StepperMotor *rightMotor = AFMS.getStepper(200, 1);
 Adafruit_StepperMotor *leftMotor = AFMS.getStepper(200, 2);
+Adafruit_StepperMotor *rightMotor = AFMS.getStepper(200, 1);
 
 Servo tool_servo;
 const int servo_pin = 9; // Only 9 & 10 are supported
@@ -31,8 +31,8 @@ const int artboard_to_mm = interspool_spacing / max_dim;
 
 // Old test path code, please remove
 // Units are in width/artboard_dims mm
-const float x_scale = 2;
-const float y_scale = -2;
+const float x_scale = -2.0;
+const float y_scale = 2.0;
 
 // -10 for marker engage
 // -20 for marker disengage
@@ -83,6 +83,12 @@ int l_to_dir(float speed) {
   return RELEASE;
 }
 
+int sign(float x) {
+  if (x>0) return 1;
+  if (x<0) return -1;
+  return 0;
+}
+
 // TODO: Make this set the path
 // int incomingByte = 0;
 // int* getPath() {
@@ -113,6 +119,9 @@ void run_motors(int dl_l, int dl_r){
   int l_steps = abs(dl_l);
   int r_steps = abs(dl_r);
 
+  int l_dir = sign(dl_l);
+  int r_dir = sign(dl_r);
+
   // init variables dl, dr which hold how many steps to take on each loop
   int dl, dr;
 
@@ -124,27 +133,20 @@ void run_motors(int dl_l, int dl_r){
     // Serial.print(" ");
 
     if (l_steps > r_steps){
-      dl = l_steps / r_steps;
-      dr = min(r_steps, 1);
+      leftMotor->step(1, l_to_dir(dl_l), DOUBLE);
+      l_steps -= 1;
+      cur_lengths[0] += 1 * l_dir;
     }
     else {
-      dl = min(l_steps, 1);
-      dr = r_steps / l_steps;
+      rightMotor->step(1, l_to_dir(dl_r), DOUBLE);
+      r_steps -= 1;
+      cur_lengths[1] += 1 * r_dir;
     }
 
-    // Serial.print(dl);
-    // Serial.print(" ");
-    // Serial.print(dr);
-    // Serial.print(" ");
 
-    rightMotor->step(dl, l_to_dir(dl_r), DOUBLE);
-    leftMotor->step(dr, l_to_dir(dl_l), DOUBLE);
-
-    l_steps -= dl;
-    r_steps -= dr;
-    // Serial.print(l_steps);
-    // Serial.print(" ");
-    // Serial.println(r_steps);
+    Serial.print(cur_lengths[0]);
+    Serial.print(" ");
+    Serial.println(cur_lengths[1]);
   }
 }
 
@@ -152,14 +154,22 @@ void run_motors(int dl_l, int dl_r){
 void set_lengths(int len_l, int len_r){
   /* Moves the motors to set the string to the desired lengths in steps */
 
-  int delta_l_l = cur_lengths[0] - len_l;
-  int delta_l_r = cur_lengths[1] - len_r;
+  Serial.print("len: ");
+  Serial.print(len_l);
+  Serial.print(" ");
+  Serial.print(len_r);
+  Serial.print(" ");
+
+  int delta_l_l = len_l - cur_lengths[0];
+  int delta_l_r =  len_r - cur_lengths[1];
 
   run_motors(delta_l_l, delta_l_r);
-  // run_motors(40, 40);
 
-  cur_lengths[0] = len_l;
-  cur_lengths[1] = len_r;
+  Serial.print("cur len: ");
+  Serial.print(cur_lengths[0]);
+  Serial.print(" ");
+  Serial.print(cur_lengths[1]);
+  Serial.println(" ");
 }
 
 
@@ -168,7 +178,7 @@ void set_position(float x, float y){
      x and y are floats between (0,1)
      Origin is the top left corner */
 
-  // Serial.println("setting xy" + String(x) + " " + String(y));
+  Serial.print(String(x) + " " + String(y) + " ");
 
   float new_length_l = sqrt(x*x + y*y) * artboard_to_mm * steps_per_mm;
   float new_length_r = sqrt((max_dim - x)*(max_dim - x) + y*y) * artboard_to_mm * steps_per_mm;
@@ -193,6 +203,8 @@ void setup() {
   Serial.println("begin.");
   Serial.println(init_rope_length);
 
+  // run_motors(100,0);
+
   // Run through the hard coded path
   for(int i = 0; i < num_path; i++){
     // Lots of messy stuff here.
@@ -206,10 +218,6 @@ void setup() {
       Serial.println("Marker Up");
       delay(500);
     } else {
-      Serial.print(path[i][0] * x_scale);
-      Serial.print(' ');
-      Serial.print(path[i][1] * y_scale);
-      Serial.print(' ');
       set_position((path[i][0] * x_scale) + 50, 50 - (path[i][1] * y_scale));
     }
     // Let the motors rest
@@ -218,6 +226,8 @@ void setup() {
   //
   // leftMotor->release();
   // rightMotor->release();
+
+  set_position(50,50);
   Serial.println("done!");
 }
 
