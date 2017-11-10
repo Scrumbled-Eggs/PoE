@@ -159,24 +159,73 @@ void setup() {
   rightMotor->setSpeed(max_speed);
 
   // Run through the hard coded path
-  for(int i = 0; i < num_path; i++){
-    Serial.print(path[i][0]);
-    Serial.print(' ');
-    Serial.println(path[i][1]);
-    // Lots of messy stuff here.
-    // The 50's are there to move the origin of the path to the center of the board
-    set_position((path[i][0] * x_scale) + 50, 50 - (path[i][1] * y_scale));
-    // Let the motors rest
-    delay(10);
-  }
+  // for(int i = 0; i < num_path; i++){
+  //   Serial.print(path[i][0]);
+  //   Serial.print(' ');
+  //   Serial.println(path[i][1]);
+  //   // Lots of messy stuff here.
+  //   // The 50's are there to move the origin of the path to the center of the board
+  //   set_position((path[i][0] * x_scale) + 50, 50 - (path[i][1] * y_scale));
+  //   // Let the motors rest
+  //   delay(10);
+  // }
 
   leftMotor->release();
   rightMotor->release();
   Serial.println("done!");
+  Serial.flush();
 }
 
-
+int cmd_id = -1;
+int readString;
 void loop() {
   // Spin the wheels
-  delay(10);
+  // Serial.println("ready");
+  // while(Serial.available()) {
+  //   Serial.println(Serial.read());
+  // }
+  // Serial.println(cmd_id);
+  // char inByte = ' ';
+  // if(Serial.available()){ // only send data back if data has been sent
+  //   char inByte = Serial.read(); // read the incoming data
+  //   Serial.println(inByte); // send the data back in a new line so that it is not all one long line
+  //   }
+  // delay(100); // delay for 1/10 of a second
+  while(!Serial.available()) {}
+  // serial read section
+  while (Serial.available())
+  {
+    if (Serial.available() >0)
+    {
+      int c[4];
+      for(int i =0; i<4; i++) {
+        c[i] = Serial.read();  //gets one byte from serial buffer
+        delay(10);
+      }
+
+      // int c = Serial.parseInt();
+      readString = c[0] + 256*c[1];
+      Serial.println(readString);
+      Serial.flush();
+      // Serial.write(byte(c[0]));
+      // Serial.write(byte(c[1]));
+      // readString += c; //makes the string readString
+    }
+  }
+
+  // if (readString.length() >0)
+  // {
+  //   // Serial.print("Arduino received: ");  
+  //   // Serial.println(readString + "\n"); //see what was received
+  // }
+
+  // delay(50);
+
+  // serial write section
+
+  // char ard_sends = '1';
+  // Serial.print("Arduino sends: ");
+  // Serial.println(ard_sends);
+  // Serial.print("\n");
+  Serial.flush();
 }
