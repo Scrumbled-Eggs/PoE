@@ -12,6 +12,9 @@ Adafruit_StepperMotor *leftMotor = AFMS.getStepper(200, 2);
 Servo tool_servo;
 const int servo_pin = 9; // Only 9 & 10 are supported
 
+const int servo_marker = 90;
+const int servo_off = 50;
+
 
 // Maximum speed to run motors
 const int max_speed = 12;
@@ -30,6 +33,9 @@ const int artboard_to_mm = interspool_spacing / max_dim;
 // Units are in width/artboard_dims mm
 const float x_scale = 2;
 const float y_scale = -2;
+
+// -10 for marker engage
+// -20 for marker disengage
 
 const int num_path = 29;
 const float path[][2] =   {
@@ -192,11 +198,11 @@ void setup() {
     // Lots of messy stuff here.
     // The 50's are there to move the origin of the path to the center of the board
     if (path[i][0] == -10){
-      tool_servo.write(90);
+      tool_servo.write(servo_marker);
       Serial.println("Marker Down");
       delay(500);
     } else if (path[i][0] == -20){
-      tool_servo.write(48);
+      tool_servo.write(servo_off);
       Serial.println("Marker Up");
       delay(500);
     } else {
