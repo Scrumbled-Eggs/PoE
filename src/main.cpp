@@ -84,10 +84,8 @@ int sign(float x) {
   return 0;
 }
 
-void run_motors(int dl_l, int dl_r){
-  /* Given dl_l and dl_r, move the motors by that much
-     dl_l (delta length left) in units step
-     dl_r (delta length right) in units step */
+void run_motors(LR_Step delta_l){
+  /* Move lr steps*/
 
   /* TODO: Rewrite to run both steppers at the same time, with their speeds modulated to make slope.
            This will probably require acceleration for ramping up and down */
@@ -96,37 +94,38 @@ void run_motors(int dl_l, int dl_r){
 
   if (DEBUG_MOTORS) {
     Serial.print("motors: ");
-    Serial.print(dl_l);
+    Serial.print(delta_l.l);
     Serial.print(" ");
-    Serial.println(dl_r);
+    Serial.println(delta_l.r);
   }
-  if(dl_l == 0 && dl_r == 0) return;
+  if(delta_l.l == 0 && delta_l.r == 0) return;
 
   // Init variables of remaining steps
-  int l_steps = abs(dl_l);
-  int r_steps = abs(dl_r);
+  LR_Step remain_steps;
+  remain_steps.l = abs(delta_l.l);
+  remain_steps.r = abs(delta_l.r);
 
-  int l_dir = sign(dl_l);
-  int r_dir = sign(dl_r);
+  int l_dir = sign(delta_l.l);
+  int r_dir = sign(delta_l.r);
 
 
-  while ((l_steps > 0) || (r_steps > 0)) {
+  while ((remain_steps.l > 0) || (remain_steps.r > 0)) {
     // Sets the smaller step to 1 and the larger step to ratio between r_steps and l_steps
     // Serial.print(l_steps);
     // Serial.print(" ");
     // Serial.print(r_steps);
     // Serial.print(" ");
 
-    if (l_steps > r_steps){
-      leftMotor->step(1, l_to_dir(dl_l), DOUBLE);
-      l_steps -= 1;
+    if (remain_steps.l > remain_steps.r){
+      leftMotor->step(1, l_to_dir(delta_l.l), DOUBLE);
+      remain_steps.l -= 1;
 
       cur_len.l += 1 * l_dir;
         if (DEBUG_MOTORS) Serial.print(" 1 0 ");
     }
     else {
-      rightMotor->step(1, l_to_dir(dl_r), DOUBLE);
-      r_steps -= 1;
+      rightMotor->step(1, l_to_dir(delta_l.r), DOUBLE);
+      remain_steps.r -= 1;
 
       cur_len.r += 1 * r_dir;
         if (DEBUG_MOTORS) Serial.print(" 0 1 ");
@@ -141,19 +140,21 @@ void run_motors(int dl_l, int dl_r){
 }
 
 
-void set_lengths(int len_l, int len_r){
+void set_lengths(LR_Step desired_lr){
   /* Moves the motors to set the string to the desired lengths in steps */
 
   Serial.print("len: ");
-  Serial.print(len_l);
+  Serial.print(desired_lr.l);
   Serial.print(" ");
-  Serial.print(len_r);
+  Serial.print(desired_lr.r);
   Serial.print(" ");
 
-  int delta_l_l = len_l - cur_len.l;
-  int delta_l_r = len_r - cur_len.r;
+  LR_Step delta_lr = {
+    desired_lr.l - cur_len.l,
+    desired_lr.r - cur_len.r
+  };
 
-  run_motors(delta_l_l, delta_l_r);
+  run_motors(delta_lr);
 
   Serial.print("cur len: ");
   Serial.print(cur_len.l);
@@ -169,10 +170,12 @@ void set_position(XY_Pos xy){
 
   Serial.print("xy: " + String(xy.x) + " " + String(xy.y) + " ");
 
-  float new_length_l = 1.0 * sqrt( (xy.x*xy.x) + (xy.y*xy.y) ) * steps_per_mm;
-  float new_length_r = 1.0 * sqrt( ((interspool_spacing - xy.x)*(interspool_spacing - xy.x)) + (xy.y*xy.y) ) * steps_per_mm;
+  LR_Step new_lr = {
+    (int)(1.0 * sqrt( (xy.x*xy.x) + (xy.y*xy.y) ) * steps_per_mm),
+    (int)(1.0 * sqrt( ((interspool_spacing - xy.x)*(interspool_spacing - xy.x)) + (xy.y*xy.y) ) * steps_per_mm)
+  };
 
-  set_lengths(new_length_l, new_length_r);
+  set_lengths(new_lr);
 }
 
 
@@ -220,9 +223,6 @@ void setup() {
     // Let the motors rest
     delay(500);
   }
-
-  // leftMotor->release();
-  // rightMotor->release();
 
   Serial.println("done!");
 }
