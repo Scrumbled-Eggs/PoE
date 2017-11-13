@@ -10,13 +10,7 @@ Adafruit_StepperMotor *leftMotor = AFMS.getStepper(200, 2);
 Adafruit_StepperMotor *rightMotor = AFMS.getStepper(200, 1);
 
 Servo tool_servo;
-const int servo_pin = 9; // Only 9 & 10 are supported
 
-// Conversion from mm to stepper motor steps
-const float steps_per_mm = 1.38889; /* 200.0 steps per rotation / 144.0 Circumference in mm */;
-
-// Width between spools in mm
-const int interspool_spacing = 1000;
 
 struct XY_Pos {
   long x;
@@ -28,6 +22,23 @@ struct LR_Step {
   int r;
 };
 
+/******* Config *******/
+int interspool_spacing = 1000; // In mm
+const XY_Pos init_pos = { 500, 500 }; // In mm
+
+const int servo_marker = 90;
+const int servo_off = 50;
+
+// Maximum speed to run motors
+const int max_speed = 50;
+
+const int servo_pin = 9; // Only 9 & 10 are supported
+/***** End Config *****/
+
+
+// Conversion from mm to stepper motor steps
+const float steps_per_mm = 1.38889; /* 200.0 steps per rotation / 144.0 Circumference in mm */;
+
 LR_Step xy_to_lr(XY_Pos xy){
   LR_Step lr;
 
@@ -37,26 +48,12 @@ LR_Step xy_to_lr(XY_Pos xy){
 }
 
 
-const int servo_marker = 90;
-const int servo_off = 50;
-
-
-
-// Maximum speed to run motors
-const int max_speed = 50;
-
-
-const XY_Pos init_pos = { 500, 500 };
 // Calculate init cable lengths
 LR_Step cur_len = xy_to_lr(init_pos);
 
 
-
-/* For Test Path */
+/* Test Path */
 // Units are in mm
-const float x_scale = 5.0;
-const float y_scale = 5.0;
-
 // -10 for marker engage
 // -20 for marker disengage
 
