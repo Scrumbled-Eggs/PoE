@@ -12,27 +12,50 @@ Adafruit_StepperMotor *rightMotor = AFMS.getStepper(200, 1);
 Servo tool_servo;
 const int servo_pin = 9; // Only 9 & 10 are supported
 
+// Conversion from mm to stepper motor steps
+const float steps_per_mm = 200.0 /* steps per rotation */ / 144.0 /* Circumference in mm */;
+
+// Width between spools in mm
+const int interspool_spacing = 970;
+
+struct XY_Pos {
+  int x;
+  int y;
+};
+
+struct LR_Len {
+  int l;
+  int r;
+};
+
+LR_Len xy_to_lr(XY_Pos xy){
+  LR_Len lr;
+  lr.l = 1.0 * sqrt((xy.x*xy.x) + (xy.y*xy.y)) * steps_per_mm;
+  lr.r = 1.0 * sqrt(((interspool_spacing - xy.x)*(interspool_spacing - xy.x)) + (xy.y*xy.y)) * steps_per_mm;
+  return lr;
+}
+
+
 const int servo_marker = 90;
 const int servo_off = 50;
 
 
+
 // Maximum speed to run motors
-const int max_speed = 12;
+const int max_speed = 50;
 
-// Width between spools in mm
-const int interspool_spacing = 1000;
 
-// Conversion from mm to stepper motor steps
-const float steps_per_mm = 200 /* steps per rotation */ / 144.0 /* Circumference in mm */;
+XY_Pos init_pos = { 540, 330 };
 
-// Artboard size
-const int max_dim = 100;
-const int artboard_to_mm = interspool_spacing / max_dim;
 
-// Old test path code, please remove
-// Units are in width/artboard_dims mm
-const float x_scale = -2.0;
-const float y_scale = 2.0;
+// Calculate init cable lengths
+LR_Len cur_len = xy_to_lr(init_pos);
+
+
+/* For Test Path */
+// Units are in mm
+const float x_scale = 5.0;
+const float y_scale = 5.0;
 
 // -10 for marker engage
 // -20 for marker disengage
@@ -71,11 +94,6 @@ const float path[][2] =   {
 };
 
 
-
-// current cable lengths
-const int init_rope_length = (interspool_spacing/sqrt(2)) * steps_per_mm;
-int cur_lengths[2] = { init_rope_length, init_rope_length };
-
 // Because adafruit motorshield lib is dumb and FORWARD and BACKWARD aren't 1 and -1
 int l_to_dir(float speed) {
   if(speed > 0)  return FORWARD;
@@ -89,25 +107,14 @@ int sign(float x) {
   return 0;
 }
 
-// TODO: Make this set the path
-// int incomingByte = 0;
-// int* getPath() {
-//   while (Serial.available() > 0) {
-//     incomingByte = Serial.read();
-//
-//     // say what you got:
-//     Serial.print("I received: ");
-//     Serial.println(incomingByte, DEC);
-//   }
-// }
-
-
 void run_motors(int dl_l, int dl_r){
   /* Given dl_l and dl_r, move the motors by that much
-     dl_l (delta length left) in units step */
+     dl_l (delta length left) in units step
+     dl_r (delta length right) in units step */
 
   /* TODO: Rewrite to run both steppers at the same time, with their speeds modulated to make slope.
            This will probably require acceleration for ramping up and down */
+
   Serial.print("motors: ");
   Serial.print(dl_l);
   Serial.print(" ");
@@ -135,18 +142,22 @@ void run_motors(int dl_l, int dl_r){
     if (l_steps > r_steps){
       leftMotor->step(1, l_to_dir(dl_l), DOUBLE);
       l_steps -= 1;
-      cur_lengths[0] += 1 * l_dir;
+
+      cur_len.l += 1 * l_dir;
+      Serial.print(" 1 0 ");
     }
     else {
       rightMotor->step(1, l_to_dir(dl_r), DOUBLE);
       r_steps -= 1;
-      cur_lengths[1] += 1 * r_dir;
+
+      cur_len.r += 1 * r_dir;
+      Serial.print(" 0 1 ");
     }
 
 
-    Serial.print(cur_lengths[0]);
+    Serial.print(cur_len.l);
     Serial.print(" ");
-    Serial.println(cur_lengths[1]);
+    Serial.println(cur_len.r);
   }
 }
 
@@ -160,28 +171,27 @@ void set_lengths(int len_l, int len_r){
   Serial.print(len_r);
   Serial.print(" ");
 
-  int delta_l_l = len_l - cur_lengths[0];
-  int delta_l_r =  len_r - cur_lengths[1];
+  int delta_l_l = len_l - cur_len.l;
+  int delta_l_r = len_r - cur_len.r;
 
   run_motors(delta_l_l, delta_l_r);
 
   Serial.print("cur len: ");
-  Serial.print(cur_lengths[0]);
+  Serial.print(cur_len.l);
   Serial.print(" ");
-  Serial.print(cur_lengths[1]);
+  Serial.print(cur_len.r);
   Serial.println(" ");
 }
 
 
-void set_position(float x, float y){
+void set_position(XY_Pos xy){
   /* Moves the marker to the position x,y
-     x and y are floats between (0,1)
-     Origin is the top left corner */
+     x and y are in mm from top left corner */
 
-  Serial.print(String(x) + " " + String(y) + " ");
+  Serial.print(String(xy.x) + " " + String(xy.y) + " ");
 
-  float new_length_l = sqrt(x*x + y*y) * artboard_to_mm * steps_per_mm;
-  float new_length_r = sqrt((max_dim - x)*(max_dim - x) + y*y) * artboard_to_mm * steps_per_mm;
+  float new_length_l = 1.0 * sqrt( (xy.x*xy.x) + (xy.y*xy.y) ) * steps_per_mm;
+  float new_length_r = 1.0 * sqrt( ((interspool_spacing - xy.x)*(interspool_spacing - xy.x)) + (xy.y*xy.y) ) * steps_per_mm;
 
   set_lengths(new_length_l, new_length_r);
 }
@@ -201,9 +211,16 @@ void setup() {
   tool_servo.write(48);
 
   Serial.println("begin.");
-  Serial.println(init_rope_length);
 
-  // run_motors(100,0);
+  Serial.print('Init lengths:');
+  Serial.print(cur_len.l);
+  Serial.print(' ');
+  Serial.println(cur_len.r);
+
+
+  set_position(XY_Pos {interspool_spacing/2, interspool_spacing/2});
+
+  XY_Pos next_xy;
 
   // Run through the hard coded path
   for(int i = 0; i < num_path; i++){
@@ -218,7 +235,10 @@ void setup() {
       Serial.println("Marker Up");
       delay(500);
     } else {
-      set_position((path[i][0] * x_scale) + 50, 50 - (path[i][1] * y_scale));
+      next_xy.x = (path[i][0] * x_scale) + (interspool_spacing / 2);
+      next_xy.y = (interspool_spacing / 2) + (path[i][1] * y_scale);
+
+      set_position(next_xy);
     }
     // Let the motors rest
     delay(10);
@@ -227,7 +247,6 @@ void setup() {
   // leftMotor->release();
   // rightMotor->release();
 
-  set_position(50,50);
   Serial.println("done!");
 }
 
