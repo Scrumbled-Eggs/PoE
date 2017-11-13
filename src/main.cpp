@@ -13,23 +13,24 @@ Servo tool_servo;
 const int servo_pin = 9; // Only 9 & 10 are supported
 
 // Conversion from mm to stepper motor steps
-const float steps_per_mm = 200.0 /* steps per rotation */ / 144.0 /* Circumference in mm */;
+const float steps_per_mm = 1.38889; /* 200.0 steps per rotation / 144.0 Circumference in mm */;
 
 // Width between spools in mm
-const int interspool_spacing = 970;
+const int interspool_spacing = 1000;
 
 struct XY_Pos {
-  int x;
-  int y;
+  long x;
+  long y;
 };
 
-struct LR_Len {
+struct LR_Step {
   int l;
   int r;
 };
 
-LR_Len xy_to_lr(XY_Pos xy){
-  LR_Len lr;
+LR_Step xy_to_lr(XY_Pos xy){
+  LR_Step lr;
+
   lr.l = 1.0 * sqrt((xy.x*xy.x) + (xy.y*xy.y)) * steps_per_mm;
   lr.r = 1.0 * sqrt(((interspool_spacing - xy.x)*(interspool_spacing - xy.x)) + (xy.y*xy.y)) * steps_per_mm;
   return lr;
@@ -45,11 +46,10 @@ const int servo_off = 50;
 const int max_speed = 50;
 
 
-XY_Pos init_pos = { 540, 330 };
-
-
+const XY_Pos init_pos = { 500, 500 };
 // Calculate init cable lengths
-LR_Len cur_len = xy_to_lr(init_pos);
+LR_Step cur_len = xy_to_lr(init_pos);
+
 
 
 /* For Test Path */
@@ -60,44 +60,24 @@ const float y_scale = 5.0;
 // -10 for marker engage
 // -20 for marker disengage
 
-const int num_path = 29;
+const int num_path = 9;
 const float path[][2] =   {
-  {0,0}, // Init @ origin
+  {500,500}, // Init @ origin
   {-10,0},
-  {2,0}, // P
-  {2,2},
-  {0,2},
-  {-20,0},
-  {0,0},
-  {-10,0},
-  {0,4}, // end P
-  {-20,0},
-  {3,4}, // O
-  {-10,0},
-  {3,0},
-  {6,0},
-  {6,4},
-  {3,4}, // end O
-  {-20,0},
-  {7,4}, // E
-  {-10,0},
-  {7,0},
-  {9,0},
-  {7,0},
-  {7,2},
-  {9,2},
-  {7,2},
-  {7,4},
-  {9,4}, // end E
-  {-20,0},
-  {0,0}
+  {600,500},
+  {600,600},
+  {400,600},
+  {400,400},
+  {500,400},
+  {500,500}, // End at origin
+  {-20,0}
 };
 
 
 // Because adafruit motorshield lib is dumb and FORWARD and BACKWARD aren't 1 and -1
 int l_to_dir(float speed) {
-  if(speed > 0)  return FORWARD;
-  if(speed < 0)  return BACKWARD;
+  if(speed > 0)  return BACKWARD;
+  if(speed < 0)  return FORWARD;
   return RELEASE;
 }
 
@@ -115,11 +95,14 @@ void run_motors(int dl_l, int dl_r){
   /* TODO: Rewrite to run both steppers at the same time, with their speeds modulated to make slope.
            This will probably require acceleration for ramping up and down */
 
-  Serial.print("motors: ");
-  Serial.print(dl_l);
-  Serial.print(" ");
-  Serial.println(dl_r);
+  const bool DEBUG_MOTORS = false;
 
+  if (DEBUG_MOTORS) {
+    Serial.print("motors: ");
+    Serial.print(dl_l);
+    Serial.print(" ");
+    Serial.println(dl_r);
+  }
   if(dl_l == 0 && dl_r == 0) return;
 
   // Init variables of remaining steps
@@ -129,8 +112,6 @@ void run_motors(int dl_l, int dl_r){
   int l_dir = sign(dl_l);
   int r_dir = sign(dl_r);
 
-  // init variables dl, dr which hold how many steps to take on each loop
-  int dl, dr;
 
   while ((l_steps > 0) || (r_steps > 0)) {
     // Sets the smaller step to 1 and the larger step to ratio between r_steps and l_steps
@@ -144,20 +125,21 @@ void run_motors(int dl_l, int dl_r){
       l_steps -= 1;
 
       cur_len.l += 1 * l_dir;
-      Serial.print(" 1 0 ");
+        if (DEBUG_MOTORS) Serial.print(" 1 0 ");
     }
     else {
       rightMotor->step(1, l_to_dir(dl_r), DOUBLE);
       r_steps -= 1;
 
       cur_len.r += 1 * r_dir;
-      Serial.print(" 0 1 ");
+        if (DEBUG_MOTORS) Serial.print(" 0 1 ");
     }
 
-
-    Serial.print(cur_len.l);
-    Serial.print(" ");
-    Serial.println(cur_len.r);
+    if (DEBUG_MOTORS) {
+      Serial.print(cur_len.l);
+      Serial.print(" ");
+      Serial.println(cur_len.r);
+    }
   }
 }
 
@@ -188,7 +170,7 @@ void set_position(XY_Pos xy){
   /* Moves the marker to the position x,y
      x and y are in mm from top left corner */
 
-  Serial.print(String(xy.x) + " " + String(xy.y) + " ");
+  Serial.print("xy: " + String(xy.x) + " " + String(xy.y) + " ");
 
   float new_length_l = 1.0 * sqrt( (xy.x*xy.x) + (xy.y*xy.y) ) * steps_per_mm;
   float new_length_r = 1.0 * sqrt( ((interspool_spacing - xy.x)*(interspool_spacing - xy.x)) + (xy.y*xy.y) ) * steps_per_mm;
@@ -210,15 +192,13 @@ void setup() {
   tool_servo.attach(servo_pin);
   tool_servo.write(48);
 
+
   Serial.println("begin.");
 
-  Serial.print('Init lengths:');
+  Serial.print("Init lengths:");
   Serial.print(cur_len.l);
-  Serial.print(' ');
+  Serial.print(" ");
   Serial.println(cur_len.r);
-
-
-  set_position(XY_Pos {interspool_spacing/2, interspool_spacing/2});
 
   XY_Pos next_xy;
 
@@ -235,15 +215,15 @@ void setup() {
       Serial.println("Marker Up");
       delay(500);
     } else {
-      next_xy.x = (path[i][0] * x_scale) + (interspool_spacing / 2);
-      next_xy.y = (interspool_spacing / 2) + (path[i][1] * y_scale);
+      next_xy.x = path[i][0];
+      next_xy.y = path[i][1];
 
       set_position(next_xy);
     }
     // Let the motors rest
-    delay(10);
+    delay(500);
   }
-  //
+
   // leftMotor->release();
   // rightMotor->release();
 
