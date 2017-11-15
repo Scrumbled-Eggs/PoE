@@ -205,7 +205,6 @@ void setup() {
   // Run through the hard coded path
   for(int i = 0; i < num_path; i++){
     // Lots of messy stuff here.
-    // The 50's are there to move the origin of the path to the center of the board
     if (path[i][0] == -10){
       tool_servo.write(servo_marker);
       Serial.println("Marker Down");
