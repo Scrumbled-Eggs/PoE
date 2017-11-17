@@ -1,13 +1,11 @@
 #include "Arduino.h"
 #include <Servo.h>
-#include <Adafruit_MotorShield.h>
-#include <Adafruit_MS_PWMServoDriver.h>
+#include "SpeedyStepper.h"
 
 
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(); // Create the motor shield object with the default I2C address
 
-Adafruit_StepperMotor *leftMotor = AFMS.getStepper(200, 2);
-Adafruit_StepperMotor *rightMotor = AFMS.getStepper(200, 1);
+SpeedyStepper leftMotor;
+SpeedyStepper rightMotor;
 
 Servo tool_servo;
 
@@ -71,13 +69,6 @@ const float path[][2] =   {
 };
 
 
-// Because adafruit motorshield lib is dumb and FORWARD and BACKWARD aren't 1 and -1
-int l_to_dir(float speed) {
-  if(speed > 0)  return BACKWARD;
-  if(speed < 0)  return FORWARD;
-  return RELEASE;
-}
-
 int sign(float x) {
   if (x>0) return 1;
   if (x<0) return -1;
@@ -100,42 +91,18 @@ void run_motors(LR_Step delta_l){
   }
   if(delta_l.l == 0 && delta_l.r == 0) return;
 
-  // Init variables of remaining steps
-  LR_Step remain_steps;
-  remain_steps.l = abs(delta_l.l);
-  remain_steps.r = abs(delta_l.r);
+  leftMotor.setupRelativeMoveInSteps(delta_l.l);
+  rightMotor.setupRelativeMoveInSteps(delta_l.r);
 
-  int l_dir = sign(delta_l.l);
-  int r_dir = sign(delta_l.r);
+  while((!leftMotor.motionComplete()) || (!rightMotor.motionComplete())){
+     leftMotor.processMovement();
+     rightMotor.processMovement();
+   }
 
-
-  while ((remain_steps.l > 0) || (remain_steps.r > 0)) {
-    // Sets the smaller step to 1 and the larger step to ratio between r_steps and l_steps
-    // Serial.print(l_steps);
-    // Serial.print(" ");
-    // Serial.print(r_steps);
-    // Serial.print(" ");
-
-    if (remain_steps.l > remain_steps.r){
-      leftMotor->step(1, l_to_dir(delta_l.l), DOUBLE);
-      remain_steps.l -= 1;
-
-      cur_len.l += 1 * l_dir;
-        if (DEBUG_MOTORS) Serial.print(" 1 0 ");
-    }
-    else {
-      rightMotor->step(1, l_to_dir(delta_l.r), DOUBLE);
-      remain_steps.r -= 1;
-
-      cur_len.r += 1 * r_dir;
-        if (DEBUG_MOTORS) Serial.print(" 0 1 ");
-    }
-
-    if (DEBUG_MOTORS) {
-      Serial.print(cur_len.l);
-      Serial.print(" ");
-      Serial.println(cur_len.r);
-    }
+  if (DEBUG_MOTORS) {
+    Serial.print(cur_len.l);
+    Serial.print(" ");
+    Serial.println(cur_len.r);
   }
 }
 
@@ -182,12 +149,19 @@ void set_position(XY_Pos xy){
 void setup() {
   Serial.begin(9600);
 
-  AFMS.begin();
-  leftMotor->setSpeed(max_speed);
-  rightMotor->setSpeed(max_speed);
+  // To enable the motor shield, write LOW to pin 8
+  pinMode(8, OUTPUT);
+  digitalWrite(8, LOW);
 
-  rightMotor->step(1, FORWARD, DOUBLE);
-  leftMotor->step(1, FORWARD, DOUBLE);
+  leftMotor.connectToPins(2,5); // X on shield
+  rightMotor.connectToPins(3,6); // Y on shield
+
+  leftMotor.setSpeedInStepsPerSecond(200);
+  rightMotor.setSpeedInStepsPerSecond(200);
+
+  leftMotor.setAccelerationInStepsPerSecondPerSecond(400);
+  rightMotor.setAccelerationInStepsPerSecondPerSecond(400);
+
 
   tool_servo.attach(servo_pin);
   tool_servo.write(48);
@@ -222,6 +196,10 @@ void setup() {
     // Let the motors rest
     delay(500);
   }
+
+  // To enable the motor shield, write LOW to pin 8
+  pinMode(8, OUTPUT);
+  digitalWrite(8, HIGH);
 
   Serial.println("done!");
 }
