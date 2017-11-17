@@ -22,10 +22,21 @@ def pointScale(viewBox, point):
     miny = float(viewBox[0].split()[1])
     maxx = float(viewBox[0].split()[2])
     maxy = float(viewBox[0].split()[3])
-    xScale = 100/(maxx-minx)
-    yScale = 100/(maxy-miny)
+    xScale = 1000/(maxx-minx)
+    yScale = 1000/(maxy-miny)
     scale = min(xScale, yScale)
     return(int(point.real *scale), int(point.imag*scale))
+
+def sendPoint(point):
+    cxn.write(struct.pack('i',point[0]))
+    cxn.write(struct.pack('i',point[1]))
+
+def confirmPoint(counter, point):
+    x=0
+    while x<counter:
+        while cxn.inWaiting():
+            print(cxn.readline())
+            x += 1
 
 time.sleep(.5)
 print(cxn.readline())
@@ -36,39 +47,36 @@ for path in paths:
     for seg in path:
         if(type(seg)==lineType):
             counter = 0
+            cxn.write(struct.pack('i', 2))
+            confirmPoint(1,0)
             print("Python sends point 0 ", pointScale(viewBox, seg.point(0)))
-            cxn.write(struct.pack('i', pointScale(viewBox, seg.point(0))[0]))
-            cxn.write(struct.pack('i', pointScale(viewBox, seg.point(0))[1]))
-            while counter<2:
-                while cxn.inWaiting():
-                    print(cxn.readline())
-                    counter += 1
+            sendPoint(pointScale(viewBox, seg.point(0)))
+            confirmPoint(2, 0)
+            # while counter<2:
+            #     while cxn.inWaiting():
+            #         print(cxn.readline())
+            #         counter += 1
 
-            counter = 0
+            # counter = 0
             print("Python sends point 1 ", pointScale(viewBox, seg.point(1)))
-            cxn.write(struct.pack('i', pointScale(viewBox, seg.point(1))[0]))
-            cxn.write(struct.pack('i', pointScale(viewBox, seg.point(1))[1]))
-            while counter<2:
-                while cxn.inWaiting():
-                    print(cxn.readline())
-                    counter += 1
-            # cxn.write([pointScale(viewBox, seg.point(0))[0]])
-            # cxn.write([pointScale(viewBox, seg.point(0))[1]])
-            # print(pointScale(viewBox, seg.point(1)))
-            # cxn.write([pointScale(viewBox, seg.point(1))[0]])
-            # cxn.write([pointScale(viewBox, seg.point(1))[1]])
+            sendPoint(pointScale(viewBox, seg.point(1)))
+            confirmPoint(2,0)
+            # while counter<2:
+            #     while cxn.inWaiting():
+            #         print(cxn.readline())
+            #         counter += 1
         if(type(seg)==quadType):
             counter = 0
             for x in range(0,8):
                 print("Python sends point " + str(x) + " ",pointScale(viewBox, seg.point(x/8.)))
-                cxn.write(struct.pack('i', pointScale(viewBox, seg.point(x/8.))[0]))
-                cxn.write(struct.pack('i', pointScale(viewBox, seg.point(x/8.))[1]))
-            while counter<16:
-                while cxn.inWaiting():
-                    print("Received point " + str(counter/2) + " ", cxn.readline())
-                    # print(cxn.inWaiting())
-                    counter += 1
-            counter = 0
+                sendPoint(pointScale(viewBox, seg.point(x/8.)))
+                # confirmPoint(2,0)
+            confirmPoint(16,0)
+            # while counter<16:
+            #     while cxn.inWaiting():
+            #         print("Received point " + str(counter/2) + " ", cxn.readline())
+            #         counter += 1
+            # counter = 0
         print('\n')
 
 

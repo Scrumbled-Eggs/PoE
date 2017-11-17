@@ -176,7 +176,27 @@ void setup() {
   Serial.flush();
 }
 
-int cmd_id = -1;
+int readInteger(){
+  int c[4];
+  for(int i =0; i<4; i++) {
+    c[i] = Serial.read();  //gets one byte from serial buffer
+    delay(10);
+  }
+  return c[0] + 256*c[1];
+}
+
+int * getPath(){
+  int length;
+  length = readInteger();
+  int path[length];
+  for (int i=0; i<length; i++){
+    path[i] = i;
+  }
+  Serial.println(length);
+  Serial.flush();
+  return path;
+}
+
 int readString;
 void loop() {
   // Spin the wheels
@@ -191,26 +211,31 @@ void loop() {
   //   Serial.println(inByte); // send the data back in a new line so that it is not all one long line
   //   }
   // delay(100); // delay for 1/10 of a second
-  while(!Serial.available()) {}
+  // while(!Serial.available()) {}
   // serial read section
   while (Serial.available())
   {
-    if (Serial.available() >0)
-    {
-      int c[4];
-      for(int i =0; i<4; i++) {
-        c[i] = Serial.read();  //gets one byte from serial buffer
-        delay(10);
-      }
+    // if (Serial.available() >0)
+    // {
+      // int c[4];
+      // for(int i =0; i<4; i++) {
+      //   c[i] = Serial.read();  //gets one byte from serial buffer
+      //   delay(10);
+      // }
 
-      // int c = Serial.parseInt();
-      readString = c[0] + 256*c[1];
-      Serial.println(readString);
-      Serial.flush();
+      // // int c = Serial.parseInt();
+      // readString = c[0] + 256*c[1];
+
+      int * x;
+      x = getPath();
+      // readString = readInteger()
+      // Serial.println(readString);
+      // Serial.flush();
+
       // Serial.write(byte(c[0]));
       // Serial.write(byte(c[1]));
       // readString += c; //makes the string readString
-    }
+    // }
   }
 
   // if (readString.length() >0)
