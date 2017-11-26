@@ -192,8 +192,8 @@ int * getPath(){
   for (int i=0; i<length; i++){
     path[i] = i;
   }
-  Serial.println(length);
-  Serial.flush();
+  // Serial.println(length);
+  // Serial.flush();
   return path;
 }
 
@@ -228,6 +228,8 @@ void loop() {
 
       int * x;
       x = getPath();
+      Serial.println(sizeof(x));
+      Serial.flush();
       // readString = readInteger()
       // Serial.println(readString);
       // Serial.flush();

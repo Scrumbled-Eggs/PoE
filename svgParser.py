@@ -14,7 +14,7 @@ viewBox = [el.getAttribute('viewBox') for el
         in doc.getElementsByTagName('svg')]
 doc.unlink()
 print(viewBox) # maps to 0 0 100 100 on our coordinates
-cxn = serial.Serial('/dev/ttyUSB0', baudrate=9600)
+cxn = serial.Serial('/dev/ttyACM0', baudrate=9600)
 
 def pointScale(viewBox, point):
     # This is bad but I'm under time pressure again
@@ -51,36 +51,21 @@ for path in paths:
             confirmPoint(1,0)
             print("Python sends point 0 ", pointScale(viewBox, seg.point(0)))
             sendPoint(pointScale(viewBox, seg.point(0)))
-            confirmPoint(2, 0)
-            # while counter<2:
-            #     while cxn.inWaiting():
-            #         print(cxn.readline())
-            #         counter += 1
+            # confirmPoint(2, 0)
+            print(cxn.readline())
 
-            # counter = 0
             print("Python sends point 1 ", pointScale(viewBox, seg.point(1)))
             sendPoint(pointScale(viewBox, seg.point(1)))
-            confirmPoint(2,0)
-            # while counter<2:
-            #     while cxn.inWaiting():
-            #         print(cxn.readline())
-            #         counter += 1
+            # confirmPoint(2,0)
+            print(cxn.readline())
+
         if(type(seg)==quadType):
             counter = 0
             for x in range(0,8):
                 print("Python sends point " + str(x) + " ",pointScale(viewBox, seg.point(x/8.)))
                 sendPoint(pointScale(viewBox, seg.point(x/8.)))
                 # confirmPoint(2,0)
-            confirmPoint(16,0)
-            # while counter<16:
-            #     while cxn.inWaiting():
-            #         print("Received point " + str(counter/2) + " ", cxn.readline())
-            #         counter += 1
-            # counter = 0
+            # confirmPoint(16,0)
+            print(cxn.readline())
+
         print('\n')
-
-
-# pointScale(viewBox, 't')
-
-
-# cxn.write(['hi'])
