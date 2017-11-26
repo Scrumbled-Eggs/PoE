@@ -1,179 +1,148 @@
 #include "Arduino.h"
-#include <Adafruit_MotorShield.h>
-#include <Adafruit_MS_PWMServoDriver.h>
+#include <Servo.h>
+#include "SpeedyStepper.h"
 
 
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(); // Create the motor shield object with the default I2C address
 
-Adafruit_StepperMotor *rightMotor = AFMS.getStepper(200, 1);
-Adafruit_StepperMotor *leftMotor = AFMS.getStepper(200, 2);
+SpeedyStepper leftMotor;
+SpeedyStepper rightMotor;
 
+Servo tool_servo;
+
+
+struct XY_Pos {
+  long x;
+  long y;
+};
+
+struct LR_Step {
+  int l;
+  int r;
+};
+
+/******* Config *******/
+int interspool_spacing = 1000; // In mm
+const XY_Pos init_pos = { 500, 500 }; // In mm
+
+const int servo_marker = 90;
+const int servo_off = 50;
 
 // Maximum speed to run motors
-const int max_speed = 12;
+const int max_speed = 50;
 
-// Width between spools in mm
-const int interspool_spacing = 900;
+const int servo_pin = 9; // Only 9 & 10 are supported
+/***** End Config *****/
+int pathLength;
 
 // Conversion from mm to stepper motor steps
-const float mm_to_steps = 144.0 /* Circumference in mm */ / 200 /* steps per rotation */;
+const float steps_per_mm = 1.38889; /* 200.0 steps per rotation / 144.0 Circumference in mm */;
 
-// Artboard size
-const int max_dim = 100;
-const int artboard_to_mm = interspool_spacing / max_dim;
+LR_Step xy_to_lr(XY_Pos xy){
+  LR_Step lr;
 
-// Old test path code, please remove
-// Units are in width/artboard_dims mm
-const float x_scale = 1;
-const float y_scale = -1;
+  lr.l = 1.0 * sqrt((xy.x*xy.x) + (xy.y*xy.y)) * steps_per_mm;
+  lr.r = 1.0 * sqrt(((interspool_spacing - xy.x)*(interspool_spacing - xy.x)) + (xy.y*xy.y)) * steps_per_mm;
+  return lr;
+}
 
-const int num_path = 25;
+
+// Calculate init cable lengths
+LR_Step cur_len = xy_to_lr(init_pos);
+
+
+/* Test Path */
+// Units are in mm
+// -10 for marker engage
+// -20 for marker disengage
+
+const int num_path = 9;
 const float path[][2] =   {
-  {0,0}, // Init @ origin
-  {2,0}, // P
-  {2,2},
-  {0,2},
-  {0,0},
-  {0,4}, // end P
-  {3,4}, // O
-  {3,1.25},
-  {4.25, 0},
-  {5.25, 0},
-  {6,1.25},
-  {6,2.75},
-  {5.25,4},
-  {4.25,4},
-  {3,2.75},
-  {3,4}, // end O
-  {7,4}, // E
-  {7,0},
-  {9,0},
-  {7,0},
-  {7,2},
-  {9,2},
-  {7,2},
-  {7,4},
-  {9,4}, // end E
-  // {0,0}
+  {500,500}, // Init @ origin
+  {-10,0},
+  {600,500},
+  {600,600},
+  {400,600},
+  {400,400},
+  {500,400},
+  {500,500}, // End at origin
+  {-20,0}
 };
 
 
-
-// current cable lengths
-const int init_rope_length = (interspool_spacing/sqrt(2)) * mm_to_steps;
-int cur_lengths[2] = { init_rope_length, init_rope_length };
-
-// Because adafruit motorshield lib is dumb and FORWARD and BACKWARD aren't 1 and -1
-int l_to_dir(float speed) {
-  if(speed > 0)  return FORWARD;
-  if(speed < 0)  return BACKWARD;
-  return RELEASE;
+int sign(float x) {
+  if (x>0) return 1;
+  if (x<0) return -1;
+  return 0;
 }
 
-// TODO: Make this set the path
-// int incomingByte = 0;
-// int* getPath() {
-//   while (Serial.available() > 0) {
-//     incomingByte = Serial.read();
-//
-//     // say what you got:
-//     Serial.print("I received: ");
-//     Serial.println(incomingByte, DEC);
-//   }
-// }
-
-
-void run_motors(int dl_l, int dl_r){
-  /* Given dl_l and dl_r, move the motors by that much
-     dl_l (delta length left) in units step */
+void run_motors(LR_Step delta_l){
+  /* Move lr steps*/
 
   /* TODO: Rewrite to run both steppers at the same time, with their speeds modulated to make slope.
            This will probably require acceleration for ramping up and down */
 
-  if(dl_l == 0 && dl_r == 0) return;
+  const bool DEBUG_MOTORS = false;
 
-  // Init variables of remaining steps
-  int l_steps = abs(dl_l);
-  int r_steps = abs(dl_r);
+  if (DEBUG_MOTORS) {
+    Serial.print("motors: ");
+    Serial.print(delta_l.l);
+    Serial.print(" ");
+    Serial.println(delta_l.r);
+  }
+  if(delta_l.l == 0 && delta_l.r == 0) return;
 
-  // init variables dl, dr which hold how many steps to take on each loop
-  int dl, dr;
+  leftMotor.setupRelativeMoveInSteps(delta_l.l);
+  rightMotor.setupRelativeMoveInSteps(delta_l.r);
 
-  while ((l_steps > 0) || (r_steps > 0)) {
-    // Sets the smaller step to 1 and the larger step to ratio between r_steps and l_steps
-    if (l_steps > r_steps){
-      dl = max(l_steps, 1);
-      dr = r_steps / l_steps;
-    }
-    else {
-      dl = l_steps / r_steps;
-      dr = max(r_steps, 1);
-    }
+  while((!leftMotor.motionComplete()) || (!rightMotor.motionComplete())){
+     leftMotor.processMovement();
+     rightMotor.processMovement();
+   }
 
-    rightMotor->step(dl, l_to_dir(dl_r), DOUBLE);
-    leftMotor->step(dr, l_to_dir(dl_l), DOUBLE);
-
-    l_steps -= dl;
-    r_steps -= dr;
+  if (DEBUG_MOTORS) {
+    Serial.print(cur_len.l);
+    Serial.print(" ");
+    Serial.println(cur_len.r);
   }
 }
 
 
-void set_lengths(int len_l, int len_r){
-  /* Moves the motors to set the string to the desired lengths */
+void set_lengths(LR_Step desired_lr){
+  /* Moves the motors to set the string to the desired lengths in steps */
 
-  int delta_l_l = cur_lengths[0] - len_l;
-  int delta_l_r = cur_lengths[1] - len_r;
+  Serial.print("len: ");
+  Serial.print(desired_lr.l);
+  Serial.print(" ");
+  Serial.print(desired_lr.r);
+  Serial.print(" ");
 
-  run_motors(delta_l_l, delta_l_r);
-  // run_motors(40, 40);
+  LR_Step delta_lr = {
+    desired_lr.l - cur_len.l,
+    desired_lr.r - cur_len.r
+  };
 
-  cur_lengths[0] = len_l;
-  cur_lengths[1] = len_r;
+  run_motors(delta_lr);
+
+  Serial.print("cur len: ");
+  Serial.print(cur_len.l);
+  Serial.print(" ");
+  Serial.print(cur_len.r);
+  Serial.println(" ");
 }
 
 
-void set_position(float x, float y){
+void set_position(XY_Pos xy){
   /* Moves the marker to the position x,y
-     x and y are floats between (0,1)
-     Origin is the top left corner */
+     x and y are in mm from top left corner */
 
-  // Serial.println("setting xy" + String(x) + " " + String(y));
+  Serial.print("xy: " + String(xy.x) + " " + String(xy.y) + " ");
 
-  float new_length_l = sqrt(x*x + y*y) * artboard_to_mm * mm_to_steps;
-  float new_length_r = sqrt((max_dim - x)*(max_dim - x) + y*y) * artboard_to_mm * mm_to_steps;
+  LR_Step new_lr = {
+    (int)(1.0 * sqrt( (xy.x*xy.x) + (xy.y*xy.y) ) * steps_per_mm),
+    (int)(1.0 * sqrt( ((interspool_spacing - xy.x)*(interspool_spacing - xy.x)) + (xy.y*xy.y) ) * steps_per_mm)
+  };
 
-  set_lengths(new_length_l, new_length_r);
-}
-
-
-void setup() {
-  Serial.begin(9600);
-
-  AFMS.begin();
-
-  Serial.println("begin.");
-
-
-  leftMotor->setSpeed(max_speed);
-  rightMotor->setSpeed(max_speed);
-
-  // Run through the hard coded path
-  // for(int i = 0; i < num_path; i++){
-  //   Serial.print(path[i][0]);
-  //   Serial.print(' ');
-  //   Serial.println(path[i][1]);
-  //   // Lots of messy stuff here.
-  //   // The 50's are there to move the origin of the path to the center of the board
-  //   set_position((path[i][0] * x_scale) + 50, 50 - (path[i][1] * y_scale));
-  //   // Let the motors rest
-  //   delay(10);
-  // }
-
-  leftMotor->release();
-  rightMotor->release();
-  Serial.println("done!");
-  Serial.flush();
+  set_lengths(new_lr);
 }
 
 int readInteger(){
@@ -186,73 +155,109 @@ int readInteger(){
 }
 
 int * getPath(){
-  int length;
-  length = readInteger();
-  int path[length];
-  for (int i=0; i<length; i++){
-    path[i] = i;
+  pathLength = readInteger();
+  int path[pathLength];
+  for (int i=0; i<pathLength/2; i++){
+    path[i/2][i%2] = readInteger;
   }
-  // Serial.println(length);
-  // Serial.flush();
   return path;
 }
 
-int readString;
-void loop() {
-  // Spin the wheels
-  // Serial.println("ready");
-  // while(Serial.available()) {
-  //   Serial.println(Serial.read());
-  // }
-  // Serial.println(cmd_id);
-  // char inByte = ' ';
-  // if(Serial.available()){ // only send data back if data has been sent
-  //   char inByte = Serial.read(); // read the incoming data
-  //   Serial.println(inByte); // send the data back in a new line so that it is not all one long line
-  //   }
-  // delay(100); // delay for 1/10 of a second
-  // while(!Serial.available()) {}
-  // serial read section
-  while (Serial.available())
-  {
-    // if (Serial.available() >0)
-    // {
-      // int c[4];
-      // for(int i =0; i<4; i++) {
-      //   c[i] = Serial.read();  //gets one byte from serial buffer
-      //   delay(10);
-      // }
+void setup() {
+  Serial.begin(9600);
 
-      // // int c = Serial.parseInt();
-      // readString = c[0] + 256*c[1];
+  // To enable the motor shield, write LOW to pin 8
+  pinMode(8, OUTPUT);
+  digitalWrite(8, LOW);
 
-      int * x;
-      x = getPath();
-      Serial.println(sizeof(x));
-      Serial.flush();
-      // readString = readInteger()
-      // Serial.println(readString);
-      // Serial.flush();
+  leftMotor.connectToPins(2,5); // X on shield
+  rightMotor.connectToPins(3,6); // Y on shield
 
-      // Serial.write(byte(c[0]));
-      // Serial.write(byte(c[1]));
-      // readString += c; //makes the string readString
-    // }
+  leftMotor.setSpeedInStepsPerSecond(200);
+  rightMotor.setSpeedInStepsPerSecond(200);
+
+  leftMotor.setAccelerationInStepsPerSecondPerSecond(400);
+  rightMotor.setAccelerationInStepsPerSecondPerSecond(400);
+
+
+  tool_servo.attach(servo_pin);
+  tool_servo.write(48);
+
+
+  Serial.println("begin.");
+
+  Serial.print("Init lengths:");
+  Serial.print(cur_len.l);
+  Serial.print(" ");
+  Serial.println(cur_len.r);
+
+  XY_Pos next_xy;
+
+  // Run through the hard coded path
+  for(int i = 0; i < num_path; i++){
+    // Lots of messy stuff here.
+    if (path[i][0] == -10){
+      tool_servo.write(servo_marker);
+      Serial.println("Marker Down");
+      delay(500);
+    } else if (path[i][0] == -20){
+      tool_servo.write(servo_off);
+      Serial.println("Marker Up");
+      delay(500);
+    } else {
+      next_xy.x = path[i][0];
+      next_xy.y = path[i][1];
+
+      set_position(next_xy);
+    }
+    // Let the motors rest
+    delay(500);
   }
 
-  // if (readString.length() >0)
-  // {
-  //   // Serial.print("Arduino received: ");  
-  //   // Serial.println(readString + "\n"); //see what was received
-  // }
+  // To enable the motor shield, write LOW to pin 8
+  pinMode(8, OUTPUT);
+  digitalWrite(8, HIGH);
 
-  // delay(50);
+  Serial.println("done!");
+}
 
-  // serial write section
 
-  // char ard_sends = '1';
-  // Serial.print("Arduino sends: ");
-  // Serial.println(ard_sends);
-  // Serial.print("\n");
+void loop() {
+  int * x;
+  while (Serial.available()) {
+    x = getPath();
+  }
+
+  if (cur_len.l != x[0][0]) || (cur_len.r != x[0][1]) {
+    tool_servo.write(servo_off);
+    next_xy.x = x[i][0];
+    next_xy.y = x[i][1];
+
+    set_position(next_xy);
+    tool_servo.write(servo_marker)
+  }
+
+  for(int i = 0; i < pathLength; i++){
+    // Lots of messy stuff here.
+    if (path[i][0] == -10){
+      tool_servo.write(servo_marker);
+      Serial.println("Marker Down");
+      delay(500);
+    } else if (path[i][0] == -20){
+      tool_servo.write(servo_off);
+      Serial.println("Marker Up");
+      delay(500);
+    } else {
+      next_xy.x = path[i][0];
+      next_xy.y = path[i][1];
+
+      set_position(next_xy);
+    }
+    // Let the motors rest
+    delay(500);
+  }
+
   Serial.flush();
 }
+
+
