@@ -154,11 +154,19 @@ int readInteger(){
   return c[0] + 256*c[1];
 }
 
+int * getPoint(){
+  int point[2]
+  point[0] = readInteger();
+  delay(25)
+  point[1] = readInteger();
+  return point;
+}
+
 int * getPath(){
   pathLength = readInteger();
   int path[pathLength];
-  for (int i=0; i<pathLength/2; i++){
-    path[i/2][i%2] = readInteger;
+  for (int i=0; i<pathLength; i++){
+    path[i] = getPoint();
   }
   return path;
 }

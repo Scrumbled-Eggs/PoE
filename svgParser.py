@@ -48,24 +48,25 @@ for path in paths:
         if(type(seg)==lineType):
             counter = 0
             cxn.write(struct.pack('i', 2))
-            confirmPoint(1,0)
+            # confirmPoint(1,0)
             print("Python sends point 0 ", pointScale(viewBox, seg.point(0)))
             sendPoint(pointScale(viewBox, seg.point(0)))
             # confirmPoint(2, 0)
-            print(cxn.readline())
+            # print(cxn.readline())
 
             print("Python sends point 1 ", pointScale(viewBox, seg.point(1)))
             sendPoint(pointScale(viewBox, seg.point(1)))
             # confirmPoint(2,0)
-            print(cxn.readline())
+            # print(cxn.readline())
 
         if(type(seg)==quadType):
             counter = 0
+            cxn.write(struct.pack('i', 8))
             for x in range(0,8):
                 print("Python sends point " + str(x) + " ",pointScale(viewBox, seg.point(x/8.)))
                 sendPoint(pointScale(viewBox, seg.point(x/8.)))
                 # confirmPoint(2,0)
             # confirmPoint(16,0)
-            print(cxn.readline())
+            # print(cxn.readline())
 
         print('\n')
