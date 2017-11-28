@@ -27,9 +27,13 @@ def pointScale(viewBox, point):
     scale = min(xScale, yScale)
     return(int(point.real *scale), int(point.imag*scale))
 
+def send(number):
+    cxn.write(struct.pack('i', number))
+
 def sendPoint(point):
-    cxn.write(struct.pack('i',point[0]))
-    cxn.write(struct.pack('i',point[1]))
+    send(point[0])
+    time.sleep(.01)
+    send(point[1])
 
 def confirmPoint(counter, point):
     x=0
@@ -47,7 +51,7 @@ for path in paths:
     for seg in path:
         if(type(seg)==lineType):
             counter = 0
-            cxn.write(struct.pack('i', 2))
+            send(2)
             # confirmPoint(1,0)
             print("Python sends point 0 ", pointScale(viewBox, seg.point(0)))
             sendPoint(pointScale(viewBox, seg.point(0)))
@@ -61,7 +65,7 @@ for path in paths:
 
         if(type(seg)==quadType):
             counter = 0
-            cxn.write(struct.pack('i', 8))
+            send(8)
             for x in range(0,8):
                 print("Python sends point " + str(x) + " ",pointScale(viewBox, seg.point(x/8.)))
                 sendPoint(pointScale(viewBox, seg.point(x/8.)))

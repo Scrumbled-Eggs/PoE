@@ -157,7 +157,7 @@ int readInteger(){
 int * getPoint(){
   int point[2]
   point[0] = readInteger();
-  delay(25)
+  delay(100)
   point[1] = readInteger();
   return point;
 }
