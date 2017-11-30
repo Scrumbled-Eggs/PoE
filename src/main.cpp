@@ -162,14 +162,10 @@ XY_Pos getPoint(){
   return xy;
 }
 
-XY_Pos * getPath(){
-  pathLength = readInteger();
-  XY_Pos path[pathLength];
-  path[0].x = pathLength;
-  for (int i=1; i<pathLength+1; i++){
+void getPath(XY_Pos path[]){
+  for (int i=0; i<pathLength; i++){
     path[i] = getPoint();
   }
-  return path;
 }
 
 void setup() {
@@ -193,7 +189,7 @@ void setup() {
   tool_servo.write(48);
 
 
-  // Serial.println("begin.");
+  Serial.println("begin.");
 
   // Serial.print("Init lengths:");
   // Serial.print(cur_len.l);
@@ -227,30 +223,36 @@ void setup() {
   pinMode(8, OUTPUT);
   digitalWrite(8, HIGH);
 
-  // Serial.println("done!");
+  Serial.println("done!");
 }
 
 
 void loop() {
-  XY_Pos * loopPath;
-  while (Serial.available()) {
-    loopPath = getPath();
+  Serial.flush();
+  Serial.println("Loop");
+  
+  if (Serial.available()) {
+    delay(100);
+    pathLength = readInteger();
+    XY_Pos loopPath[pathLength];
+    getPath(loopPath);
+  // XY_Pos next_xy;
+
+  // if (cur_len.l != xy_to_lr(loopPath[0]).l || (cur_len.r != xy_to_lr(loopPath[0]).r )) {
+  //   tool_servo.write(servo_off);
+  //   next_xy.x = loopPath[0].x;
+  //   next_xy.y = loopPath[0].y;
+
+  //   set_position(next_xy);
+  //   tool_servo.write(servo_marker);
+  // }
+
+  // pathLength = loopPath[0].x;
+  // delay(10);
+    Serial.println("test");
+    delay(1000);
   }
-
-  XY_Pos next_xy;
-
-  if (cur_len.l != xy_to_lr(loopPath[0]).l || (cur_len.r != xy_to_lr(loopPath[0]).r )) {
-    tool_servo.write(servo_off);
-    next_xy.x = loopPath[0].x;
-    next_xy.y = loopPath[0].y;
-
-    set_position(next_xy);
-    tool_servo.write(servo_marker);
-  }
-
-  pathLength = loopPath[0].x;
-  delay(10);
-
+  delay(100);
   // for(int i = 1; i < pathLength+1; i++){
   //   // Lots of messy stuff here.
   //   if (loopPath[i].x == -10){

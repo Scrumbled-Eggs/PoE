@@ -70,8 +70,8 @@ for path in paths:
             sendPoint(pointScale(viewBox, seg.point(0)))
             # confirmPoint(2, 0)
             # print(cxn.readline())
-            recieve()
-            recieve()
+            # recieve()
+            # recieve()
 
             print("Python sends point 1 ", pointScale(viewBox, seg.point(1)))
             sendPoint(pointScale(viewBox, seg.point(1)))
