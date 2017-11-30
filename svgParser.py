@@ -3,6 +3,7 @@ from svgpathtools import svg2paths, wsvg, Line, QuadraticBezier
 from xml.dom import minidom
 import struct
 import time
+import sys
 
 lineType = type(Line(start=(0+0j),end=(1,1j)))
 quadType = type(QuadraticBezier(start=(0+0j), control=(.5+.5j), end=(1+1j)))
@@ -32,6 +33,8 @@ def send(number):
 
 def recieve():
     haveRevieved = False
+    i = 0
+    recievedVal = None
     while haveRevieved == False:
         if(cxn.in_waiting>0):
             recievedVal = cxn.read(cxn.in_waiting)
@@ -39,8 +42,25 @@ def recieve():
             haveRevieved = True
         else:
             time.sleep(.01)
-    print(recievedVal)
+            i+=1
+            if i > 100:
+                return
+    try:
+        point = recievedVal.decode().split(" ")
+        for i in range(len(point)):
+            point[i] = int(point[i])
+        print(point)
+        return point
+
+    except:
+        e = sys.exc_info()[0]
+        print(e)
+        print(recievedVal.decode())
+        return None
+
     time.sleep(.1)
+    # except:
+    #     print(recievedVal.decode())
 
 
 def sendPoint(point):
@@ -65,6 +85,7 @@ for path in paths:
         if(type(seg)==lineType):
             counter = 0
             send(2)
+            print("sent 2")
             recieve()
             # confirmPoint(1,0)
             print("Python sends point 0 ", pointScale(viewBox, seg.point(0)))
@@ -73,26 +94,33 @@ for path in paths:
             # print(cxn.readline())
             # recieve()
             time.sleep(.2)
-            recieve()
+            valRec = recieve()
+            if valRec != None and tuple(valRec) != pointScale(viewBox, seg.point(0)):
+                print("ERROR!!!")
 
             print("Python sends point 1 ", pointScale(viewBox, seg.point(1)))
             sendPoint(pointScale(viewBox, seg.point(1)))
             # recieve()
             time.sleep(.2)
-            recieve()
+            valRec = recieve()
+            if valRec != None and tuple(valRec) != pointScale(viewBox, seg.point(1)):
+                print("ERROR!!!")
             # confirmPoint(2,0)
             # print(cxn.readline())
 
         if(type(seg)==quadType):
             counter = 0
             send(8)
+            print("sent 8")
             recieve()
             for x in range(0,8):
                 print("Python sends point " + str(x) + " ",pointScale(viewBox, seg.point(x/8.)))
                 sendPoint(pointScale(viewBox, seg.point(x/8.)))
                 # recieve()
                 time.sleep(.2)
-                recieve()
+                valRec = recieve()
+                if valRec != None and tuple(valRec) != pointScale(viewBox, seg.point(x/8.)):
+                    print("ERROR!!!")
                 # print(cxn.readline())
                 # confirmPoint(2,0)
             # confirmPoint(16,0)

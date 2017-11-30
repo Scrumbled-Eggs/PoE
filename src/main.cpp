@@ -233,12 +233,12 @@ void setup() {
 void loop() {
   Serial.flush();
   // Serial.println("Loop");
-  
+
   if (Serial.available()) {
     delay(100);
     pathLength = readInteger();
     // delay(50);
-    // Serial.print(pathLength);
+    Serial.print(pathLength);
     // Serial.flush();
     XY_Pos loopPath[pathLength];
     getPath(loopPath);
