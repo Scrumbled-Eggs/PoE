@@ -99,42 +99,7 @@ for path in paths:
             for i in range(0,2):
                 pointToSend = pointScale(viewBox, seg.point(i))
                 confirmPoint(pointToSend, i)
-                # hasSentCorrectly = False
-                # while not(hasSentCorrectly):
-                #     print("Python sends point " + str(i) + " ",pointScale(viewBox, seg.point(i)))
-                #     sendPoint(pointScale(viewBox, seg.point(i)))
-                #     # recieve()
-                #     time.sleep(.2)
-                #     valRec = recieve()
-                #     if valRec == None or tuple(valRec) != pointScale(viewBox, seg.point(i)):
-                #         print("ERROR!!!")
-                #     if tuple(valRec) == pointScale(viewBox, seg.point(i)):
-                #         hasSentCorrectly = True
-                #         print("Correct value has been confirmed")
 
-            # # confirmPoint(1,0)
-            # print("Python sends point 0 ", pointScale(viewBox, seg.point(0)))
-            # sendPoint(pointScale(viewBox, seg.point(0)))
-            # # confirmPoint(2, 0)
-            # # print(cxn.readline())
-            # # recieve()
-            # time.sleep(.2)
-            # valRec = recieve()
-            # if valRec != None and tuple(valRec) != pointScale(viewBox, seg.point(0)):
-            #     print("ERROR!!!")
-            # print(valRec)
-
-            # print("Python sends point 1 ", pointScale(viewBox, seg.point(1)))
-            # sendPoint(pointScale(viewBox, seg.point(1)))
-            # # recieve()
-            # time.sleep(.2)
-            # valRec = recieve()
-            # if valRec != None and tuple(valRec) != pointScale(viewBox, seg.point(1)):
-            #     print("ERROR!!!")
-            # print(valRec)
-
-            # confirmPoint(2,0)
-            # print(cxn.readline())
 
         if(type(seg)==quadType):
             counter = 0
@@ -143,18 +108,8 @@ for path in paths:
             valRec = recieve()
             print(valRec[0])
             for i in range(0,8):
-                print("Python sends point " + str(i) + " ",pointScale(viewBox, seg.point(i/8.)))
-                sendPoint(pointScale(viewBox, seg.point(i/8.)))
-                # recieve()
-                time.sleep(.2)
-                valRec = recieve()
-                if valRec != None and tuple(valRec) != pointScale(viewBox, seg.point(i/8.)):
-                    print("ERROR!!!")
-                print(valRec)
-                # print(cxn.readline())
-                # confirmPoint(2,0)
-            # confirmPoint(16,0)
-            # print(cxn.readline())
+                pointToSend = pointScale(viewBox, seg.point(i))
+                confirmPoint(pointToSend, i)
         print('\n')
 
     time.sleep(1)
