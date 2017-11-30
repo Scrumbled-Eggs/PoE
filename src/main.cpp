@@ -154,17 +154,17 @@ int readInteger(){
   return c[0] + 256*c[1];
 }
 
-int * getPoint(){
-  int point[2]
-  point[0] = readInteger();
-  delay(100)
-  point[1] = readInteger();
-  return point;
+XY_Pos getPoint(){
+  XY_Pos xy;
+  xy.x = readInteger();
+  delay(100);
+  xy.y = readInteger();
+  return xy;
 }
 
-int * getPath(){
+XY_Pos * getPath(){
   pathLength = readInteger();
-  int path[pathLength];
+  XY_Pos path[pathLength];
   for (int i=0; i<pathLength; i++){
     path[i] = getPoint();
   }
@@ -231,18 +231,20 @@ void setup() {
 
 
 void loop() {
-  int * x;
+  XY_Pos * loopPath;
   while (Serial.available()) {
-    x = getPath();
+    loopPath = getPath();
   }
+  
+  XY_Pos next_xy;
 
-  if (cur_len.l != x[0][0]) || (cur_len.r != x[0][1]) {
+  if (cur_len.l != xy_to_lr(loopPath[0]).l || (cur_len.r != xy_to_lr(loopPath[0]).r )) {
     tool_servo.write(servo_off);
-    next_xy.x = x[i][0];
-    next_xy.y = x[i][1];
+    next_xy.x = loopPath[0].x;
+    next_xy.y = loopPath[0].y;
 
     set_position(next_xy);
-    tool_servo.write(servo_marker)
+    tool_servo.write(servo_marker);
   }
 
   for(int i = 0; i < pathLength; i++){
