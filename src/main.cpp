@@ -158,7 +158,9 @@ XY_Pos getPoint(){
   XY_Pos xy;
   xy.x = readInteger();
   xy.y = readInteger();
-  Serial.print(String(xy.x));
+  Serial.print(String(xy.x) + " " + String(xy.y));
+  delay(400);
+  Serial.flush();
   // Serial.print(String(xy.y));
   return xy;
 }
@@ -235,6 +237,9 @@ void loop() {
   if (Serial.available()) {
     delay(100);
     pathLength = readInteger();
+    // delay(50);
+    // Serial.print(pathLength);
+    // Serial.flush();
     XY_Pos loopPath[pathLength];
     getPath(loopPath);
   // XY_Pos next_xy;
