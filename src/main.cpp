@@ -216,7 +216,7 @@ void setup() {
   //     next_xy.x = path[i][0];
   //     next_xy.y = path[i][1];
 
-  //     set_position(next_xy);
+      // set_position(next_xy);
   //   }
   //   // Let the motors rest
   //   delay(500);
@@ -242,7 +242,9 @@ void loop() {
     // Serial.flush();
     XY_Pos loopPath[pathLength];
     getPath(loopPath);
-  // XY_Pos next_xy;
+
+
+    XY_Pos next_xy; 
 
   // if (cur_len.l != xy_to_lr(loopPath[0]).l || (cur_len.r != xy_to_lr(loopPath[0]).r )) {
   //   tool_servo.write(servo_off);
@@ -256,29 +258,29 @@ void loop() {
   // pathLength = loopPath[0].x;
   // delay(10);
     // Serial.println("test");
-  }
-  delay(100);
-  // for(int i = 1; i < pathLength+1; i++){
-  //   // Lots of messy stuff here.
-  //   if (loopPath[i].x == -10){
-  //     tool_servo.write(servo_marker);
-  //     Serial.println("Marker Down");
-  //     delay(500);
-  //   } else if (loopPath[i].x == -20){
-  //     tool_servo.write(servo_off);
-  //     Serial.println("Marker Up");
-  //     delay(500);
-  //   } else {
-  //     next_xy.x = loopPath[i].x;
-  //     next_xy.y = loopPath[i].y;
-// 
-  //     set_position(next_xy);
-  //   }
-  //   // Let the motors rest
-  //   delay(500);
-  // }
+    // delay(100);
+    // for(int i = 0; i < pathLength; i++){
+    //   // Lots of messy stuff here.
+    //   if (loopPath[i].x == -10){
+    //     tool_servo.write(servo_marker);
+    //     Serial.println("Marker Down");
+    //     delay(500);
+    //   } else if (loopPath[i].x == -20){
+    //     tool_servo.write(servo_off);
+    //     Serial.println("Marker Up");
+    //     delay(500);
+    //   } else {
+    //     next_xy.x = loopPath[i].x;
+    //     next_xy.y = loopPath[i].y;
+
+    //     set_position(next_xy);
+    //   }
+    //   // Let the motors rest
+    //   delay(1000);
+    // }
 
   // Serial.flush();
+  }
 }
 
 
