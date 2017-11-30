@@ -45,6 +45,8 @@ def confirmPoint(counter, point):
 time.sleep(.5)
 print(cxn.readline())
 print(cxn.readline())
+time.sleep(1)
+print(cxn.readline())
 
 paths, attributes = svg2paths('PoE.svg')
 for path in paths:
@@ -57,6 +59,7 @@ for path in paths:
             sendPoint(pointScale(viewBox, seg.point(0)))
             # confirmPoint(2, 0)
             # print(cxn.readline())
+            print(str(cxn.in_waiting))
 
             print("Python sends point 1 ", pointScale(viewBox, seg.point(1)))
             sendPoint(pointScale(viewBox, seg.point(1)))
@@ -69,8 +72,12 @@ for path in paths:
             for x in range(0,8):
                 print("Python sends point " + str(x) + " ",pointScale(viewBox, seg.point(x/8.)))
                 sendPoint(pointScale(viewBox, seg.point(x/8.)))
+                # print(cxn.readline())
                 # confirmPoint(2,0)
             # confirmPoint(16,0)
             # print(cxn.readline())
-
         print('\n')
+
+    time.sleep(1)
+
+    print('\n')

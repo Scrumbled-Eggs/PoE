@@ -157,15 +157,16 @@ int readInteger(){
 XY_Pos getPoint(){
   XY_Pos xy;
   xy.x = readInteger();
-  delay(100);
   xy.y = readInteger();
+  Serial.print(String(xy.x));
   return xy;
 }
 
 XY_Pos * getPath(){
   pathLength = readInteger();
   XY_Pos path[pathLength];
-  for (int i=0; i<pathLength; i++){
+  path[0].x = pathLength;
+  for (int i=1; i<pathLength+1; i++){
     path[i] = getPoint();
   }
   return path;
@@ -194,33 +195,33 @@ void setup() {
 
   Serial.println("begin.");
 
-  Serial.print("Init lengths:");
-  Serial.print(cur_len.l);
-  Serial.print(" ");
-  Serial.println(cur_len.r);
+  // Serial.print("Init lengths:");
+  // Serial.print(cur_len.l);
+  // Serial.print(" ");
+  // Serial.println(cur_len.r);
 
-  XY_Pos next_xy;
+  // XY_Pos next_xy;
 
-  // Run through the hard coded path
-  for(int i = 0; i < num_path; i++){
-    // Lots of messy stuff here.
-    if (path[i][0] == -10){
-      tool_servo.write(servo_marker);
-      Serial.println("Marker Down");
-      delay(500);
-    } else if (path[i][0] == -20){
-      tool_servo.write(servo_off);
-      Serial.println("Marker Up");
-      delay(500);
-    } else {
-      next_xy.x = path[i][0];
-      next_xy.y = path[i][1];
+  // // Run through the hard coded path
+  // for(int i = 0; i < num_path; i++){
+  //   // Lots of messy stuff here.
+  //   if (path[i][0] == -10){
+  //     tool_servo.write(servo_marker);
+  //     Serial.println("Marker Down");
+  //     delay(500);
+  //   } else if (path[i][0] == -20){
+  //     tool_servo.write(servo_off);
+  //     Serial.println("Marker Up");
+  //     delay(500);
+  //   } else {
+  //     next_xy.x = path[i][0];
+  //     next_xy.y = path[i][1];
 
-      set_position(next_xy);
-    }
-    // Let the motors rest
-    delay(500);
-  }
+  //     set_position(next_xy);
+  //   }
+  //   // Let the motors rest
+  //   delay(500);
+  // }
 
   // To enable the motor shield, write LOW to pin 8
   pinMode(8, OUTPUT);
@@ -231,11 +232,12 @@ void setup() {
 
 
 void loop() {
+  Serial.println("loopStart");
   XY_Pos * loopPath;
   while (Serial.available()) {
     loopPath = getPath();
   }
-  
+
   XY_Pos next_xy;
 
   if (cur_len.l != xy_to_lr(loopPath[0]).l || (cur_len.r != xy_to_lr(loopPath[0]).r )) {
@@ -247,19 +249,21 @@ void loop() {
     tool_servo.write(servo_marker);
   }
 
-  for(int i = 0; i < pathLength; i++){
+  pathLength = loopPath[0].x;
+
+  for(int i = 1; i < pathLength+1; i++){
     // Lots of messy stuff here.
-    if (path[i][0] == -10){
+    if (loopPath[i].x == -10){
       tool_servo.write(servo_marker);
       Serial.println("Marker Down");
       delay(500);
-    } else if (path[i][0] == -20){
+    } else if (loopPath[i].x == -20){
       tool_servo.write(servo_off);
       Serial.println("Marker Up");
       delay(500);
     } else {
-      next_xy.x = path[i][0];
-      next_xy.y = path[i][1];
+      next_xy.x = loopPath[i].x;
+      next_xy.y = loopPath[i].y;
 
       set_position(next_xy);
     }
