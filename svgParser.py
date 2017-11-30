@@ -13,7 +13,7 @@ doc = minidom.parse(poesvg)  # parseString also exists
 viewBox = [el.getAttribute('viewBox') for el
         in doc.getElementsByTagName('svg')]
 doc.unlink()
-print(viewBox) # maps to 0 0 100 100 on our coordinates
+# print(viewBox) # maps to 0 0 100 100 on our coordinates
 cxn = serial.Serial('/dev/ttyACM0', baudrate=9600)
 
 def pointScale(viewBox, point):
@@ -30,6 +30,17 @@ def pointScale(viewBox, point):
 def send(number):
     cxn.write(struct.pack('i', number))
 
+def recieve():
+    haveRevieved = False
+    while haveRevieved == False:
+        if(cxn.in_waiting>0):
+            recievedVal = cxn.read(cxn.in_waiting)
+            haveRevieved = True
+        else:
+            time.sleep(.01)
+    print(recievedVal)
+
+
 def sendPoint(point):
     send(point[0])
     time.sleep(.01)
@@ -42,11 +53,11 @@ def confirmPoint(counter, point):
             print(cxn.readline())
             x += 1
 
-time.sleep(.5)
-print(cxn.readline())
-print(cxn.readline())
-time.sleep(1)
-print(cxn.readline())
+# time.sleep(.5)
+# recieve()
+# recieve()
+# time.sleep(1)
+# recieve()
 
 paths, attributes = svg2paths('PoE.svg')
 for path in paths:
@@ -59,7 +70,8 @@ for path in paths:
             sendPoint(pointScale(viewBox, seg.point(0)))
             # confirmPoint(2, 0)
             # print(cxn.readline())
-            print(str(cxn.in_waiting))
+            recieve()
+            recieve()
 
             print("Python sends point 1 ", pointScale(viewBox, seg.point(1)))
             sendPoint(pointScale(viewBox, seg.point(1)))
