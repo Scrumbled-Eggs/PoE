@@ -159,6 +159,7 @@ XY_Pos getPoint(){
   xy.x = readInteger();
   xy.y = readInteger();
   Serial.print(String(xy.x));
+  // Serial.print(String(xy.y));
   return xy;
 }
 
@@ -189,7 +190,7 @@ void setup() {
   tool_servo.write(48);
 
 
-  Serial.println("begin.");
+  // Serial.println("begin.");
 
   // Serial.print("Init lengths:");
   // Serial.print(cur_len.l);
@@ -229,7 +230,7 @@ void setup() {
 
 void loop() {
   Serial.flush();
-  Serial.println("Loop");
+  // Serial.println("Loop");
   
   if (Serial.available()) {
     delay(100);
@@ -249,8 +250,7 @@ void loop() {
 
   // pathLength = loopPath[0].x;
   // delay(10);
-    Serial.println("test");
-    delay(1000);
+    // Serial.println("test");
   }
   delay(100);
   // for(int i = 1; i < pathLength+1; i++){
@@ -266,7 +266,7 @@ void loop() {
   //   } else {
   //     next_xy.x = loopPath[i].x;
   //     next_xy.y = loopPath[i].y;
-
+// 
   //     set_position(next_xy);
   //   }
   //   // Let the motors rest

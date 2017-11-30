@@ -35,6 +35,7 @@ def recieve():
     while haveRevieved == False:
         if(cxn.in_waiting>0):
             recievedVal = cxn.read(cxn.in_waiting)
+            # result = ''.join([i for i in recievedVal if i.isdigit()])
             haveRevieved = True
         else:
             time.sleep(.01)
@@ -45,6 +46,7 @@ def sendPoint(point):
     send(point[0])
     time.sleep(.01)
     send(point[1])
+    time.sleep(.1)
 
 def confirmPoint(counter, point):
     x=0
@@ -53,11 +55,11 @@ def confirmPoint(counter, point):
             print(cxn.readline())
             x += 1
 
-# time.sleep(.5)
+time.sleep(.5)
+recieve()
 # recieve()
-# recieve()
-# time.sleep(1)
-# recieve()
+time.sleep(1)
+recieve()
 
 paths, attributes = svg2paths('PoE.svg')
 for path in paths:
@@ -70,11 +72,13 @@ for path in paths:
             sendPoint(pointScale(viewBox, seg.point(0)))
             # confirmPoint(2, 0)
             # print(cxn.readline())
-            # recieve()
-            # recieve()
+            recieve()
+            recieve()
 
             print("Python sends point 1 ", pointScale(viewBox, seg.point(1)))
             sendPoint(pointScale(viewBox, seg.point(1)))
+            recieve()
+            recieve()
             # confirmPoint(2,0)
             # print(cxn.readline())
 
@@ -84,6 +88,8 @@ for path in paths:
             for x in range(0,8):
                 print("Python sends point " + str(x) + " ",pointScale(viewBox, seg.point(x/8.)))
                 sendPoint(pointScale(viewBox, seg.point(x/8.)))
+                recieve()
+                recieve()
                 # print(cxn.readline())
                 # confirmPoint(2,0)
             # confirmPoint(16,0)
