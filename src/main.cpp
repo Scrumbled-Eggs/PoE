@@ -9,6 +9,7 @@ SpeedyStepper rightMotor;
 
 Servo tool_servo;
 
+bool erasing = false;
 
 struct XY_Pos {
   long x;
@@ -22,11 +23,13 @@ struct LR_Step {
 
 /******* Config *******/
 int interspool_spacing = 1220; // In mm
-const XY_Pos init_pos = { 610, 920 }; // In mm
+const XY_Pos init_pos = { 600, 600 }; // In mm
 
 const int servo_marker = 90;
 const int servo_off = 50;
+const int servo_erase = 145;
 
+const int eraser_offset = -18; //mm
 // Maximum speed to run motors
 const int max_speed = 50;
 
@@ -55,17 +58,35 @@ LR_Step cur_len = xy_to_lr(init_pos);
 // -10 for marker engage
 // -20 for marker disengage
 
-const int num_path = 9;
+const int num_path = 26;
 const float path[][2] =   {
-  {600,800}, // Init @ origin
+  {600,600}, // Init @ origin
   {-10,0},
-  {600,700},
-  {700,700},
-  {400,700},
-  {400,400},
-  {600,400},
-  {600,800}, // End at origin
-  {-20,0}
+  {600,500},
+  {700,500},
+  {400,500},
+  {400,200},
+  {600,200},
+  {600,600}, // End at origin
+  {-30,0},
+  {600,600}, // Init @ origin
+  {-10,0},
+  {600,500},
+  {700,500},
+  {400,500},
+  {400,200},
+  {600,200},
+  {600,600}, // End at origin
+  {-30,0},
+  {600,600}, // End at origin
+  {600,500},
+  {700,500},
+  {400,500},
+  {400,200},
+  {600,200},
+  {600,600}, // End at origin
+  {-10,0},
+  {600,600} // End at origin
 };
 
 
@@ -160,11 +181,11 @@ void setup() {
   leftMotor.connectToPins(2,5); // X on shield
   rightMotor.connectToPins(3,6); // Y on shield
 
-  leftMotor.setSpeedInStepsPerSecond(200);
-  rightMotor.setSpeedInStepsPerSecond(200);
+  leftMotor.setSpeedInStepsPerSecond(500);
+  rightMotor.setSpeedInStepsPerSecond(500);
 
-  leftMotor.setAccelerationInStepsPerSecondPerSecond(400);
-  rightMotor.setAccelerationInStepsPerSecondPerSecond(400);
+  leftMotor.setAccelerationInStepsPerSecondPerSecond(700);
+  rightMotor.setAccelerationInStepsPerSecondPerSecond(700);
 
 
   tool_servo.attach(servo_pin);
@@ -186,19 +207,30 @@ void setup() {
     if (path[i][0] == -10){
       tool_servo.write(servo_marker);
       Serial.println("Marker Down");
+      erasing = false;
       delay(500);
     } else if (path[i][0] == -20){
       tool_servo.write(servo_off);
       Serial.println("Marker Up");
+      erasing = false;
+      delay(500);
+    } else if (path[i][0] == -30){
+      tool_servo.write(servo_erase);
+      Serial.println("Marker Erase");
+      erasing = true;
       delay(500);
     } else {
       next_xy.x = path[i][0];
       next_xy.y = path[i][1];
 
+      if (erasing){
+        next_xy.y += eraser_offset;
+      }
+
       set_position(next_xy);
     }
     // Let the motors rest
-    delay(500);
+    delay(100);
   }
 
   // To enable the motor shield, write LOW to pin 8
