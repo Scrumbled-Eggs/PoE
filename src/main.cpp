@@ -22,7 +22,7 @@ struct LR_Step {
 
 /******* Config *******/
 int interspool_spacing = 1220; // In mm
-const XY_Pos init_pos = { 610, 600 }; // In mm
+const XY_Pos init_pos = { 610, 920 }; // In mm
 
 const int servo_marker = 90;
 const int servo_off = 50;
@@ -57,14 +57,14 @@ LR_Step cur_len = xy_to_lr(init_pos);
 
 const int num_path = 9;
 const float path[][2] =   {
-  {500,500}, // Init @ origin
+  {600,800}, // Init @ origin
   {-10,0},
-  {600,500},
-  {600,600},
-  {400,600},
+  {600,700},
+  {700,700},
+  {400,700},
   {400,400},
-  {500,400},
-  {500,500}, // End at origin
+  {600,400},
+  {600,800}, // End at origin
   {-20,0}
 };
 
