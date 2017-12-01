@@ -99,7 +99,11 @@ void run_motors(LR_Step delta_l){
      rightMotor.processMovement();
    }
 
+  cur_len.l = cur_len.l + delta_l.l;
+  cur_len.r = cur_len.r + delta_l.r;
+
   if (DEBUG_MOTORS) {
+    Serial.print("motors done ");
     Serial.print(cur_len.l);
     Serial.print(" ");
     Serial.println(cur_len.r);
