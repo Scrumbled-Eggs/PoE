@@ -110,11 +110,11 @@ void run_motors(LR_Step delta_l){
 void set_lengths(LR_Step desired_lr){
   /* Moves the motors to set the string to the desired lengths in steps */
 
-  // Serial.print("len: ");
-  // Serial.print(desired_lr.l);
-  // Serial.print(" ");
-  // Serial.print(desired_lr.r);
-  // Serial.print(" ");
+  Serial.print("len: ");
+  Serial.print(desired_lr.l);
+  Serial.print(" ");
+  Serial.print(desired_lr.r);
+  Serial.println(" ");
 
   LR_Step delta_lr = {
     desired_lr.l - cur_len.l,
@@ -135,7 +135,7 @@ void set_position(XY_Pos xy){
   /* Moves the marker to the position x,y
      x and y are in mm from top left corner */
 
-  // Serial.print("xy: " + String(xy.x) + " " + String(xy.y) + " ");
+  Serial.print("xy: " + String(xy.x) + " " + String(xy.y) + " ");
 
   LR_Step new_lr = {
     (int)(1.0 * sqrt( (xy.x*xy.x) + (xy.y*xy.y) ) * steps_per_mm),
@@ -165,7 +165,7 @@ XY_Pos getPoint(){
   return xy;
 }
 
-void getPath(XY_Pos path[]){
+void getPath(XY_Pos path[], int pathLength){
   for (int i=0; i<pathLength; i++){
     path[i] = getPoint();
   }
@@ -191,6 +191,7 @@ void setup() {
   tool_servo.attach(servo_pin);
   tool_servo.write(48);
 
+  // XY_Pos next_xy;
 
   // Serial.println("begin.");
 
@@ -199,7 +200,6 @@ void setup() {
   // Serial.print(" ");
   // Serial.println(cur_len.r);
 
-  // XY_Pos next_xy;
 
   // // Run through the hard coded path
   // for(int i = 0; i < num_path; i++){
@@ -224,27 +224,35 @@ void setup() {
 
   // To enable the motor shield, write LOW to pin 8
   pinMode(8, OUTPUT);
-  digitalWrite(8, HIGH);
+  // digitalWrite(8, HIGH);
 
   Serial.println("done!");
 }
 
 
 void loop() {
-  Serial.flush();
-  // Serial.println("Loop");
+  Serial.println("starting loop");
+  XY_Pos next_xy;
+  next_xy = { 610, 500 };
+  set_position(next_xy);
+  next_xy = { 610, 600 };
+  set_position(next_xy);
+  delay(5000);
 
-  if (Serial.available()) {
-    delay(100);
-    pathLength = readInteger();
-    // delay(50);
-    Serial.print(pathLength);
-    // Serial.flush();
-    XY_Pos loopPath[pathLength];
-    getPath(loopPath);
-
-
-    XY_Pos next_xy;
+  // Serial.flush();
+  // // Serial.println("Loop");
+  //
+  // if (Serial.available()) {
+  //   delay(100);
+  //   pathLength = readInteger();
+  //   // delay(50);
+  //   Serial.print(pathLength);
+  //   // Serial.flush();
+  //   XY_Pos loopPath[pathLength];
+  //   getPath(loopPath);
+  //
+  //
+  //   XY_Pos next_xy;
 
   // if (cur_len.l != xy_to_lr(loopPath[0]).l || (cur_len.r != xy_to_lr(loopPath[0]).r )) {
   //   tool_servo.write(servo_off);
@@ -280,5 +288,5 @@ void loop() {
     // }
 
   // Serial.flush();
-  }
+  // }
 }
