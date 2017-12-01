@@ -115,11 +115,11 @@ void run_motors(LR_Step delta_l){
 void set_lengths(LR_Step desired_lr){
   /* Moves the motors to set the string to the desired lengths in steps */
 
-  Serial.print("len: ");
-  Serial.print(desired_lr.l);
-  Serial.print(" ");
-  Serial.print(desired_lr.r);
-  Serial.print(" ");
+//   Serial.print("len: ");
+//   Serial.print(desired_lr.l);
+//   Serial.print(" ");
+//   Serial.print(desired_lr.r);
+//   Serial.print(" ");
 
   LR_Step delta_lr = {
     desired_lr.l - cur_len.l,
@@ -128,11 +128,11 @@ void set_lengths(LR_Step desired_lr){
 
   run_motors(delta_lr);
 
-  Serial.print("cur len: ");
-  Serial.print(cur_len.l);
-  Serial.print(" ");
-  Serial.print(cur_len.r);
-  Serial.println(" ");
+//   Serial.print("cur len: ");
+//   Serial.print(cur_len.l);
+//   Serial.print(" ");
+//   Serial.print(cur_len.r);
+//   Serial.println(" ");
 }
 
 
