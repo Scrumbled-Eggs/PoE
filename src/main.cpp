@@ -82,7 +82,7 @@ void run_motors(LR_Step delta_l){
            This will probably require acceleration for ramping up and down */
 
   const bool DEBUG_MOTORS = false;
-
+  
   if (DEBUG_MOTORS) {
     Serial.print("motors: ");
     Serial.print(delta_l.l);
@@ -99,7 +99,12 @@ void run_motors(LR_Step delta_l){
      rightMotor.processMovement();
    }
 
+  cur_len.l = cur_len.l + delta_l.l;
+  cur_len.r = cur_len.r + delta_l.r;
+
   if (DEBUG_MOTORS) {
+    Serial.print("motors done ");
+
     Serial.print(cur_len.l);
     Serial.print(" ");
     Serial.println(cur_len.r);
@@ -110,11 +115,11 @@ void run_motors(LR_Step delta_l){
 void set_lengths(LR_Step desired_lr){
   /* Moves the motors to set the string to the desired lengths in steps */
 
-  Serial.print("len: ");
-  Serial.print(desired_lr.l);
-  Serial.print(" ");
-  Serial.print(desired_lr.r);
-  Serial.println(" ");
+//   Serial.print("len: ");
+//   Serial.print(desired_lr.l);
+//   Serial.print(" ");
+//   Serial.print(desired_lr.r);
+//   Serial.print(" ");
 
   LR_Step delta_lr = {
     desired_lr.l - cur_len.l,
@@ -123,11 +128,11 @@ void set_lengths(LR_Step desired_lr){
 
   run_motors(delta_lr);
 
-  // Serial.print("cur len: ");
-  // Serial.print(cur_len.l);
-  // Serial.print(" ");
-  // Serial.print(cur_len.r);
-  // Serial.println(" ");
+//   Serial.print("cur len: ");
+//   Serial.print(cur_len.l);
+//   Serial.print(" ");
+//   Serial.print(cur_len.r);
+//   Serial.println(" ");
 }
 
 
@@ -191,54 +196,11 @@ void setup() {
   tool_servo.attach(servo_pin);
   tool_servo.write(48);
 
-  // XY_Pos next_xy;
-
-  // Serial.println("begin.");
-
-  // Serial.print("Init lengths:");
-  // Serial.print(cur_len.l);
-  // Serial.print(" ");
-  // Serial.println(cur_len.r);
-
-
-  // // Run through the hard coded path
-  // for(int i = 0; i < num_path; i++){
-  //   // Lots of messy stuff here.
-  //   if (path[i][0] == -10){
-  //     tool_servo.write(servo_marker);
-  //     Serial.println("Marker Down");
-  //     delay(500);
-  //   } else if (path[i][0] == -20){
-  //     tool_servo.write(servo_off);
-  //     Serial.println("Marker Up");
-  //     delay(500);
-  //   } else {
-  //     next_xy.x = path[i][0];
-  //     next_xy.y = path[i][1];
-
-      // set_position(next_xy);
-  //   }
-  //   // Let the motors rest
-  //   delay(500);
-  // }
-
-  // To enable the motor shield, write LOW to pin 8
-  pinMode(8, OUTPUT);
-  // digitalWrite(8, HIGH);
-
   Serial.println("done!");
 }
 
 
 void loop() {
-  Serial.println("starting loop");
-  XY_Pos next_xy;
-  next_xy = { 610, 500 };
-  set_position(next_xy);
-  next_xy = { 610, 600 };
-  set_position(next_xy);
-  delay(5000);
-
   // Serial.flush();
   // // Serial.println("Loop");
   //
