@@ -16,6 +16,9 @@ viewBox = [el.getAttribute('viewBox') for el
 doc.unlink()
 # print(viewBox) # maps to 0 0 100 100 on our coordinates
 cxn = serial.Serial('/dev/ttyUSB0', baudrate=9600)
+cxn.setDTR(True)
+cxn.flush()
+cxn.flushInput()
 
 def pointScale(viewBox, point):
     # This is bad but I'm under time pressure again
@@ -55,7 +58,7 @@ def recieve():
     except:
         e = sys.exc_info()[0]
         print(e)
-        print(recievedVal.decode())
+        print(recievedVal)
         return None
 
     time.sleep(.1)
@@ -76,14 +79,17 @@ def confirmPoint(point, pointNumber):
         sendPoint(point)
         time.sleep(.2)
         valRec = recieve()
-        if valRec == None or tuple(valRec) != point:
+        if valRec == None:
             print("ERROR!!!")
-        if tuple(valRec) == point:
+        elif tuple(valRec) != point:
+            print("wrong point", tuple(valRec))
+        elif tuple(valRec) == point:
             hasSentCorrectly = True
             print("Correct value has been confirmed")
 
 
-time.sleep(1)
+time.sleep(1.1)
+recieve()
 recieve()
 
 paths, attributes = svg2paths('PoE.svg')
@@ -111,7 +117,10 @@ for path in paths:
                 pointToSend = pointScale(viewBox, seg.point(i))
                 confirmPoint(pointToSend, i)
         print('\n')
+        time.sleep(1)
+        cxn.flush()
+        cxn.flushInput()
 
-    time.sleep(1)
-
-    print('\n')
+    print('a path Finished')
+    cxn.flush()
+    cxn.flushInput()
