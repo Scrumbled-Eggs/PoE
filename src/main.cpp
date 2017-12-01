@@ -21,8 +21,8 @@ struct LR_Step {
 };
 
 /******* Config *******/
-int interspool_spacing = 1000; // In mm
-const XY_Pos init_pos = { 500, 500 }; // In mm
+int interspool_spacing = 1220; // In mm
+const XY_Pos init_pos = { 610, 600 }; // In mm
 
 const int servo_marker = 90;
 const int servo_off = 50;
@@ -30,12 +30,12 @@ const int servo_off = 50;
 // Maximum speed to run motors
 const int max_speed = 50;
 
-const int servo_pin = 9; // Only 9 & 10 are supported
+const int servo_pin = 10; // Only 9 & 10 are supported
 /***** End Config *****/
 
 
 // Conversion from mm to stepper motor steps
-const float steps_per_mm = 1.38889; /* 200.0 steps per rotation / 144.0 Circumference in mm */;
+const float steps_per_mm = 5; /* 200.0 steps per rotation / 40.0 Circumference in mm */;
 
 LR_Step xy_to_lr(XY_Pos xy){
   LR_Step lr;
