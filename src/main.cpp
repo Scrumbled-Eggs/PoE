@@ -9,6 +9,12 @@ SpeedyStepper rightMotor;
 
 Servo tool_servo;
 
+typedef void(*STATE_HANDLER_T)(void);
+
+void drawing(void);
+void recieving(void);
+
+STATE_HANDLER_T state, last_state;
 
 struct XY_Pos {
   long x;
@@ -35,6 +41,8 @@ const int servo_pin = 10; // Only 9 & 10 are supported
 int pathLength;
 XY_Pos loopPath[8];
 XY_Pos newPoint;
+
+bool motor_state;
 
 // Conversion from mm to stepper motor steps
 const float steps_per_mm = 5; /* 200.0 steps per rotation / 40.0 Circumference in mm */;
@@ -117,12 +125,6 @@ void run_motors(LR_Step delta_l){
 void set_lengths(LR_Step desired_lr){
   /* Moves the motors to set the string to the desired lengths in steps */
 
-//   Serial.print("len: ");
-//   Serial.print(desired_lr.l);
-//   Serial.print(" ");
-//   Serial.print(desired_lr.r);
-//   Serial.print(" ");
-
   LR_Step delta_lr = {
     desired_lr.l - cur_len.l,
     desired_lr.r - cur_len.r
@@ -130,19 +132,12 @@ void set_lengths(LR_Step desired_lr){
 
   run_motors(delta_lr);
 
-//   Serial.print("cur len: ");
-//   Serial.print(cur_len.l);
-//   Serial.print(" ");
-//   Serial.print(cur_len.r);
-//   Serial.println(" ");
 }
 
 
 void set_position(XY_Pos xy){
   /* Moves the marker to the position x,y
      x and y are in mm from top left corner */
-
-  // Serial.print("xy: " + String(xy.x) + " " + String(xy.y) + " ");
 
   LR_Step new_lr = {
     (int)(1.0 * sqrt( (xy.x*xy.x) + (xy.y*xy.y) ) * steps_per_mm),
@@ -157,14 +152,11 @@ int readInteger(){
     c[i] = Serial.read();  //gets one byte from serial buffer
     delay(10);
   }
-  return c[0] + 256*c[1];
 }
 
 XY_Pos getPoint(){
   newPoint.x = readInteger();
   newPoint.y = readInteger();
-  // Serial.print(String(newPoint.x) + " " + String(newPoint.y));
-  // delay(400);
   Serial.flush();
   return newPoint;
 }
@@ -182,7 +174,8 @@ void setup() {
 
   // To enable the motor shield, write LOW to pin 8
   pinMode(8, OUTPUT);
-  digitalWrite(8, LOW);
+  motor_state = LOW;
+  digitalWrite(8, motor_state);
 
   leftMotor.connectToPins(2,5); // X on shield
   rightMotor.connectToPins(3,6); // Y on shield
@@ -198,10 +191,52 @@ void setup() {
   tool_servo.write(48);
 
   Serial.println("done!");
+
+  state= recieving;
+  last_state=(STATE_HANDLER_T)NULL;
 }
 
+void recieving(void) {
+  // If we are entering the state, init
+  if (state != last_state) {
+    last_state = state;
+  }
+
+  // Perform state tasks
+    //recieve a point
+
+  // Check for state transitions
+    // if the data was recieved and the point is a valid point, draw
+
+  // If we are leaving the state, clean up
+  if (state != last_state) {
+    
+  }
+}
+
+void drawing(void) {
+  // If we are entering the state, init
+  if (state != last_state) {
+    last_state = state;
+  }
+  // Perform state tasks
+    //draw the next point
+
+  // Check for state transitions
+  if (motor_state == LOW) {
+    state = recieving;
+  }
+
+  // If we are leaving the state, clean up
+  if (state != last_state) {
+    
+  }
+
+}
 
 void loop() {
+
+  state();
   // Serial.flush();
   // // Serial.println("Loop");
   //
@@ -213,41 +248,12 @@ void loop() {
     // Serial.flush();
     // XY_Pos loopPath[pathLength];
     getPath();
-  //
-  //
-  //   XY_Pos next_xy;
 
-  // if (cur_len.l != xy_to_lr(loopPath[0]).l || (cur_len.r != xy_to_lr(loopPath[0]).r )) {
-  //   tool_servo.write(servo_off);
-  //   next_xy.x = loopPath[0].x;
-  //   next_xy.y = loopPath[0].y;
-
-  //   set_position(next_xy);
-  //   tool_servo.write(servo_marker);
-  // }
-
-  // pathLength = loopPath[0].x;
-  // delay(10);
-    // Serial.println("test");
-    // delay(100);
     for(int i = 0; i < pathLength; i++){
-      // Lots of messy stuff here.
-      // if (loopPath[i].x == -10){
-      //   tool_servo.write(servo_marker);
-      //   Serial.println("Marker Down");
-      //   delay(500);
-      // } else if (loopPath[i].x == -20){
-      //   tool_servo.write(servo_off);
-      //   Serial.println("Marker Up");
-      //   delay(500);
-      // } else {
-        // next_xy.x = loopPath[i].x;
-        // next_xy.y = loopPath[i].y;
+
 
         set_position(loopPath[i]);
-      // }
-      // Let the motors rest
-      // delay(1000);
+
     }
 
   // Serial.flush();
