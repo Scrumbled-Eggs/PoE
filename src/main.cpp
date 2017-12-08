@@ -9,6 +9,8 @@ SpeedyStepper rightMotor;
 
 Servo tool_servo;
 
+bool erasing = false;
+
 typedef void(*STATE_HANDLER_T)(void);
 
 void drawing(void);
@@ -28,13 +30,16 @@ struct LR_Step {
 
 /******* Config *******/
 int interspool_spacing = 1220; // In mm
-const XY_Pos init_pos = { 610, 600 }; // In mm
+const XY_Pos init_pos = { 600, 500 }; // In mm
 
 const int servo_marker = 90;
 const int servo_off = 50;
+const int servo_erase = 145;
 
+const int eraser_offset = -18; //mm
 // Maximum speed to run motors
-const int max_speed = 50;
+const int max_speed = 500;
+const int max_accel = 700;
 
 const int servo_pin = 10; // Only 9 & 10 are supported
 /***** End Config *****/
@@ -67,14 +72,20 @@ LR_Step cur_len = xy_to_lr(init_pos);
 
 const int num_path = 9;
 const float path[][2] =   {
-  {500,500}, // Init @ origin
+  {600,500}, // Init @ origin
   {-10,0},
+  {200,150},
+  {1000,200},
+  {1000,800},
+  {600,800},
+  {300,800},
   {600,500},
-  {600,600},
-  {400,600},
-  {400,400},
-  {500,400},
-  {500,500}, // End at origin
+  // {600,500},
+  // {600,600},
+  // {400,600},
+  // {400,400},
+  // {500,400},
+  // {600,500}, // End at origin
   {-20,0}
 };
 
@@ -91,15 +102,29 @@ void run_motors(LR_Step delta_l){
   /* TODO: Rewrite to run both steppers at the same time, with their speeds modulated to make slope.
            This will probably require acceleration for ramping up and down */
 
-  const bool DEBUG_MOTORS = false;
-  
+  if(delta_l.l == 0 && delta_l.r == 0) return;
+
+  const bool DEBUG_MOTORS = true;
+
+  leftMotor.setSpeedInStepsPerSecond((int)(1.0 * max_speed * abs(delta_l.l) / max(abs(delta_l.l), abs(delta_l.r))));
+  rightMotor.setSpeedInStepsPerSecond((int)(1.0 * max_speed * abs(delta_l.r) / max(abs(delta_l.l), abs(delta_l.r))));
+
+
+
+
   if (DEBUG_MOTORS) {
     Serial.print("motors: ");
     Serial.print(delta_l.l);
     Serial.print(" ");
-    Serial.println(delta_l.r);
+    Serial.print(delta_l.r);
+
+    Serial.print(" speed: ");
+    Serial.print((1.0 * abs(delta_l.l)) / max(abs(delta_l.l), abs(delta_l.r)));
+    Serial.print(" ");
+    Serial.print((int)(1.0 * max_speed * abs(delta_l.l) / max(abs(delta_l.l), abs(delta_l.r))));
+    Serial.print(" ");
+    Serial.println((int)(1.0 * max_speed * abs(delta_l.r) / max(abs(delta_l.l), abs(delta_l.r))));
   }
-  if(delta_l.l == 0 && delta_l.r == 0) return;
 
   leftMotor.setupRelativeMoveInSteps(delta_l.l);
   rightMotor.setupRelativeMoveInSteps(delta_l.r);
@@ -146,6 +171,7 @@ void set_position(XY_Pos xy){
 
   set_lengths(new_lr);
 }
+
 int c[4];
 int readInteger(){
   for(int i =0; i<4; i++) {
@@ -180,17 +206,55 @@ void setup() {
   leftMotor.connectToPins(2,5); // X on shield
   rightMotor.connectToPins(3,6); // Y on shield
 
-  leftMotor.setSpeedInStepsPerSecond(200);
-  rightMotor.setSpeedInStepsPerSecond(200);
+  leftMotor.setSpeedInStepsPerSecond(max_speed);
+  rightMotor.setSpeedInStepsPerSecond(max_speed);
 
-  leftMotor.setAccelerationInStepsPerSecondPerSecond(400);
-  rightMotor.setAccelerationInStepsPerSecondPerSecond(400);
+  leftMotor.setAccelerationInStepsPerSecondPerSecond(max_accel);
+  rightMotor.setAccelerationInStepsPerSecondPerSecond(max_accel);
 
 
   tool_servo.attach(servo_pin);
   tool_servo.write(48);
 
   Serial.println("done!");
+
+
+
+  XY_Pos next_xy;
+
+  // Run through the hard coded path
+  for(int i = 0; i < num_path; i++){
+    // Lots of messy stuff here.
+    if (path[i][0] == -10){
+      tool_servo.write(servo_marker);
+      Serial.println("Marker Down");
+      erasing = false;
+      delay(500);
+    } else if (path[i][0] == -20){
+      tool_servo.write(servo_off);
+      Serial.println("Marker Up");
+      erasing = false;
+      delay(500);
+    } else if (path[i][0] == -30){
+      tool_servo.write(servo_erase);
+      Serial.println("Marker Erase");
+      erasing = true;
+      delay(500);
+    } else {
+      next_xy.x = path[i][0];
+      next_xy.y = path[i][1];
+
+
+      if (erasing){
+        next_xy.y += eraser_offset;
+      }
+
+      set_position(next_xy);
+    }
+    // Let the motors rest
+    delay(100);
+  }
+
 
   state= recieving;
   last_state=(STATE_HANDLER_T)NULL;
@@ -210,7 +274,7 @@ void recieving(void) {
 
   // If we are leaving the state, clean up
   if (state != last_state) {
-    
+
   }
 }
 
@@ -229,7 +293,7 @@ void drawing(void) {
 
   // If we are leaving the state, clean up
   if (state != last_state) {
-    
+
   }
 
 }
