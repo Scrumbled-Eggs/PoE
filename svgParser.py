@@ -29,7 +29,7 @@ def pointScale(viewBox, point):
     xScale = 1000/(maxx-minx)
     yScale = 1000/(maxy-miny)
     scale = min(xScale, yScale)
-    return(int(point.real *scale), int(point.imag*scale))
+    return(str(int((point.real *scale))), str(int((point.imag*scale))))
 
 def send(number):
     cxn.write(struct.pack('i', number))
@@ -67,9 +67,12 @@ def recieve():
 
 
 def sendPoint(point):
-    send(point[0])
-    time.sleep(.01)
-    send(point[1])
+    cxn.flush()
+    cxn.flushInput()
+    cxn.write(point[0].encode('utf-8'))
+    # send(point[0])
+    time.sleep(.1)
+    # send(point[1])
     time.sleep(.1)
 
 def confirmPoint(point, pointNumber):
@@ -77,7 +80,7 @@ def confirmPoint(point, pointNumber):
     while not(hasSentCorrectly):
         print("Python sends point " + str(pointNumber) + " ",point)
         sendPoint(point)
-        time.sleep(.2)
+        # time.sleep(.2)
         valRec = recieve()
         if valRec == None:
             print("ERROR!!!")
@@ -88,31 +91,22 @@ def confirmPoint(point, pointNumber):
             print("Correct value has been confirmed")
 
 
-time.sleep(1.1)
-recieve()
-recieve()
+# time.sleep(1.1)
+# recieve()
+# recieve()
 
 paths, attributes = svg2paths('PoE.svg')
 for path in paths:
     for seg in path:
         if(type(seg)==lineType):
             counter = 0
-            send(2)
-            print("sent 2")
-            valRec = recieve()
-            print(valRec[0])
-
             for i in range(0,2):
                 pointToSend = pointScale(viewBox, seg.point(i))
                 confirmPoint(pointToSend, i)
+                # sendPoint(pointToSend)
 
 
         if(type(seg)==quadType):
-            counter = 0
-            send(8)
-            print("sent 8")
-            valRec = recieve()
-            print(valRec[0])
             for i in range(0,8):
                 pointToSend = pointScale(viewBox, seg.point(i))
                 confirmPoint(pointToSend, i)

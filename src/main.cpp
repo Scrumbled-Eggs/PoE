@@ -155,11 +155,12 @@ int readInteger(){
   }
 }
 
-XY_Pos getPoint(){
+void getPoint(){
+  delay(50);
   newPoint.x = readInteger();
+  delay(50);
   newPoint.y = readInteger();
   Serial.flush();
-  return newPoint;
 }
 
 void setup() {
@@ -189,6 +190,9 @@ void setup() {
   last_state=(STATE_HANDLER_T)NULL;
 }
 
+int tmpX;
+float tmpY;
+
 void recieving(void) {
   // If we are entering the state, init
   if (state != last_state) {
@@ -196,7 +200,11 @@ void recieving(void) {
   }
 
   // Perform state tasks
-    //recieve a point
+  // getPoint();
+  // tmpX = readInteger();
+  tmpY = Serial.parseFloat();
+  Serial.print(String(100) + " " + String(tmpX));
+  // Serial.print(newPoint.y);
 
   // Check for state transitions
     // if the data was recieved and the point is a valid point, draw
@@ -216,7 +224,7 @@ void drawing(void) {
     //draw the next point
 
   // Check for state transitions
-  if (motor_state == LOW) {
+  if (motor_state == HIGH) {
     state = recieving;
   }
 
