@@ -41,6 +41,7 @@ const int servo_pin = 10; // Only 9 & 10 are supported
 int pathLength;
 XY_Pos loopPath[8];
 XY_Pos newPoint;
+XY_Pos oldPoint;
 
 bool motor_state;
 
@@ -161,14 +162,6 @@ XY_Pos getPoint(){
   return newPoint;
 }
 
-void getPath(){
-  for (int i=0; i<pathLength; i++){
-    loopPath[i] = getPoint();
-    Serial.print(String(loopPath[i].x) + " " + String(loopPath[i].y));
-    delay(400);
-  }
-}
-
 void setup() {
   Serial.begin(9600);
 
@@ -240,22 +233,22 @@ void loop() {
   // Serial.flush();
   // // Serial.println("Loop");
   //
-  if (Serial.available()) {
-    delay(100);
-    pathLength = readInteger();
-    // delay(50);
-    Serial.print(pathLength);
-    // Serial.flush();
-    // XY_Pos loopPath[pathLength];
-    getPath();
+  // if (Serial.available()) {
+  //   delay(100);
+  //   pathLength = readInteger();
+  //   // delay(50);
+  //   Serial.print(pathLength);
+  //   // Serial.flush();
+  //   // XY_Pos loopPath[pathLength];
+  //   getPath();
 
-    for(int i = 0; i < pathLength; i++){
+  //   for(int i = 0; i < pathLength; i++){
 
 
-        set_position(loopPath[i]);
+  //       set_position(loopPath[i]);
 
-    }
+  //   }
 
-  // Serial.flush();
-  }
+  // // Serial.flush();
+  // }
 }
