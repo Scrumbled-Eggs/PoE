@@ -1,41 +1,49 @@
 import serial
 from svgpathtools import svg2paths, wsvg, Line, QuadraticBezier
 from xml.dom import minidom
+import argparse
 
 lineType = type(Line(start=(0+0j),end=(1,1j)))
 quadType = type(QuadraticBezier(start=(0+0j), control=(.5+.5j), end=(1+1j)))
 
-poesvg = open('PoE.svg', 'r')
+parser = argparse.ArgumentParser(description='Take a file and scale.')
+parser.add_argument('filename')
+args = parser.parse_args()
+
+# Use the second solution on this stack overflow post to guarandtee better results
+
+poesvg = open(args.filename, 'r')
 
 doc = minidom.parse(poesvg)  # parseString also exists
 viewBox = [el.getAttribute('viewBox') for el
         in doc.getElementsByTagName('svg')]
-doc.unlink()
-print(viewBox) # maps to 0 0 100 100 on our coordinates
+svgWidth = [el.getAttribute('width') for el
+        in doc.getElementsByTagName('rect')]
+svgHeight =[el.getAttribute('height') for el
+        in doc.getElementsByTagName('rect')]
 
-def pointScale(viewBox, point):
-    # This is bad but I'm under time pressure again
-    minx = float(viewBox[0].split()[0])
-    miny = float(viewBox[0].split()[1])
-    maxx = float(viewBox[0].split()[2])
-    maxy = float(viewBox[0].split()[3])
-    xScale = 100/(maxx-minx)
-    yScale = 100/(maxy-miny)
-    scale = min(xScale, yScale)
-    return(point.real *scale, point.imag*scale)
+doc.unlink()
+# print(viewBox) # maps to 0 0 100 100 on our coordinates
+svgWidth = int(''.join(list(filter(str.isdigit, svgWidth[0]))))
+svgHeight = int(''.join(list(filter(str.isdigit, svgHeight[0]))))
+viewBox=[0,0,svgWidth, svgHeight]
+outBox = [0,0,100,100]
+
+def pointScale(svgBox, outBox, point):
+    xScale = (outBox[2]-outBox[0])/(svgBox[2]-svgBox[0])
+    yScale = (outBox[3]-outBox[1])/(svgBox[3]-svgBox[1])
+    return(point.real *xScale, point.imag*yScale)
 
 paths, attributes = svg2paths('PoE.svg')
 for path in paths:
     for seg in path:
         if(type(seg)==lineType):
-            print(pointScale(viewBox, seg.point(0)))
-            print(pointScale(viewBox, seg.point(1)))
+            for i in range(0,2):
+                pointToSend = pointScale(viewBox, outBox, seg.point(i))
+                # print(seg.point(i))
+                print("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
+
         if(type(seg)==quadType):
             for x in range(0,10):
-                print(pointScale(viewBox, seg.point(x/10.)))
-        print('\n')
-
-# pointScale(viewBox, 't')
-cxn = serial.Serial('/dev/tty0', baudrate=9600)
-
-cxn.write('hi')
+                pointToSend = pointScale(viewBox, outBox, seg.point(x/10.))
+                print("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
