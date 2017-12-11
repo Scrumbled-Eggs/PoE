@@ -15,10 +15,10 @@ viewBox = [el.getAttribute('viewBox') for el
         in doc.getElementsByTagName('svg')]
 doc.unlink()
 # print(viewBox) # maps to 0 0 100 100 on our coordinates
-cxn = serial.Serial('/dev/ttyUSB0', baudrate=9600)
-cxn.setDTR(True)
-cxn.flush()
-cxn.flushInput()
+# cxn = serial.Serial('/dev/ttyUSB0', baudrate=9600)
+# cxn.setDTR(True)
+# cxn.flush()
+# cxn.flushInput()
 
 def pointScale(viewBox, point):
     # This is bad but I'm under time pressure again
@@ -88,39 +88,41 @@ def confirmPoint(point, pointNumber):
             print("Correct value has been confirmed")
 
 
-time.sleep(1.1)
-recieve()
-recieve()
+# time.sleep(1.1)
+# recieve()
+# recieve()
 
 paths, attributes = svg2paths('PoE.svg')
 for path in paths:
     for seg in path:
         if(type(seg)==lineType):
-            counter = 0
-            send(2)
-            print("sent 2")
-            valRec = recieve()
-            print(valRec[0])
+            # counter = 0
+            # send(2)
+            # print("sent 2")
+            # valRec = recieve()
+            # print(valRec[0])
 
             for i in range(0,2):
                 pointToSend = pointScale(viewBox, seg.point(i))
-                confirmPoint(pointToSend, i)
+                # confirmPoint(pointToSend, i)
+                print("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
 
 
         if(type(seg)==quadType):
-            counter = 0
-            send(8)
-            print("sent 8")
-            valRec = recieve()
-            print(valRec[0])
+            # counter = 0
+            # send(8)
+            # print("sent 8")
+            # valRec = recieve()
+            # print(valRec[0])
             for i in range(0,8):
                 pointToSend = pointScale(viewBox, seg.point(i))
-                confirmPoint(pointToSend, i)
-        print('\n')
-        time.sleep(1)
-        cxn.flush()
-        cxn.flushInput()
+                # confirmPoint(pointToSend, i)
+                print("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
+        # print('\n')
+        # time.sleep(1)
+        # cxn.flush()
+        # cxn.flushInput()
 
-    print('a path Finished')
-    cxn.flush()
-    cxn.flushInput()
+    # print('a path Finished')
+    # cxn.flush()
+    # cxn.flushInput()
