@@ -2,6 +2,7 @@ import serial
 from svgpathtools import svg2paths, wsvg, Line, QuadraticBezier
 from xml.dom import minidom
 import argparse
+import re # for editing the cpp
 
 lineType = type(Line(start=(0+0j),end=(1,1j)))
 quadType = type(QuadraticBezier(start=(0+0j), control=(.5+.5j), end=(1+1j)))
@@ -28,11 +29,13 @@ svgWidth = int(''.join(list(filter(str.isdigit, svgWidth[0]))))
 svgHeight = int(''.join(list(filter(str.isdigit, svgHeight[0]))))
 viewBox=[0,0,svgWidth, svgHeight]
 outBox = [0,0,100,100]
+stringToReturn = ""
+stringToReturn += "//PYTHONSTARTFLAG"
 
 def pointScale(svgBox, outBox, point):
     xScale = (outBox[2]-outBox[0])/(svgBox[2]-svgBox[0])
     yScale = (outBox[3]-outBox[1])/(svgBox[3]-svgBox[1])
-    return(point.real *xScale, point.imag*yScale)
+    return(int(point.real *xScale), int(point.imag*yScale))
 
 paths, attributes = svg2paths('PoE.svg')
 for path in paths:
@@ -41,9 +44,20 @@ for path in paths:
             for i in range(0,2):
                 pointToSend = pointScale(viewBox, outBox, seg.point(i))
                 # print(seg.point(i))
-                print("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
+                stringToReturn += ("(" + str(pointToSend[0]) + "," + str(pointToSend[1]) + ")")
+                stringToReturn += (',')
 
         if(type(seg)==quadType):
             for x in range(0,10):
                 pointToSend = pointScale(viewBox, outBox, seg.point(x/10.))
-                print("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
+                stringToReturn += ("(" + str(pointToSend[0]) + "," + str(pointToSend[1]) + ")")
+                stringToReturn += (',')
+
+stringToReturn +="//PYTHONENDFLAG"
+print(stringToReturn)
+
+with open('src/main.cpp') as f:
+    cpp_data = f.read()
+# print(cpp_data)
+cpp_data = re.sub('//PYTHONSTARTFLAG.*?//PYTHONENDFLAG',stringToReturn,cpp_data,flags=re.DOTALL)
+# print(cpp_data)

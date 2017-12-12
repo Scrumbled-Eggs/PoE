@@ -60,6 +60,8 @@ LR_Step cur_len = xy_to_lr(init_pos);
 
 const int num_path = 27;
 const float path[][2] =   {
+  //PYTHONSTARTFLAG
+
   {600,600}, // Init @ origin
   {-20,0},
   {450,200},
@@ -88,6 +90,8 @@ const float path[][2] =   {
   {-755,375}, // End at origin
   {-10,0},
   {600,600} // End at origin
+
+  //PYTHONENDFLAG
 };
 
 
