@@ -89,9 +89,13 @@ for path in paths:
 
 stringToReturn +="//PYTHONENDFLAG"
 
+# Read the current CPP file
 with open('src/main.cpp') as f:
     cppData = f.read()
+
+# Replace the path with the new path
 cppData = re.sub('//PYTHONSTARTFLAG.*?//PYTHONENDFLAG',stringToReturn,cppData,flags=re.DOTALL)
 
+# Write the cpp file again.
 cppFile = open('src/main.cpp', 'w')
 cppFile.write(cppData)
