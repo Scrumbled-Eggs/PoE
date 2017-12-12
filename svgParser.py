@@ -29,9 +29,11 @@ doc = minidom.parse(poesvg)  # parseString also exists
 
 # Get the svg width and height from an SVG made using the SO toolchain
 svgWidth = [el.getAttribute('width') for el
-        in doc.getElementsByTagName('rect')]
+        in doc.getElementsByTagName('rect')] or [el.getAttribute('width') for el
+                in doc.getElementsByTagName('svg')]
 svgHeight =[el.getAttribute('height') for el
-        in doc.getElementsByTagName('rect')]
+        in doc.getElementsByTagName('rect')] or [el.getAttribute('height') for el
+                in doc.getElementsByTagName('svg')]
 doc.unlink()
 
 # Convert the svg shape into the box format
