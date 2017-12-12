@@ -54,10 +54,15 @@ def pointScale(svgBox, outBox, point):
     return(int(point.real *xScale * 3) + 600, int(point.imag*yScale*3) + 600)
 
 paths, attributes = svg2paths(args.filename)
+
+stringToReturn += "const int path[][2] =   {\n"
+
+numPoints = 0
+
 for path in paths:
     for seg in path:
-
         if currentPosition != seg.point(0):
+            numPoints += 1
             # If the start point of a segment is off, pen up
             stringToReturn += "{-20,0},"
             stringToReturn += ('\n')
@@ -67,6 +72,7 @@ for path in paths:
             for i in range(0,2):
                 pointToSend = pointScale(viewBox, outBox, seg.point(i))
                 stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "},")
+                numPoints += 1
                 stringToReturn += ('\n')
                 currentPosition = seg.point(i)
                 if not(markerDown):
@@ -74,11 +80,13 @@ for path in paths:
                     stringToReturn += "{-10,0},"
                     stringToReturn += ('\n')
                     markerDown = True
+                    numPoints += 1
 
         if(type(seg)==quadType):
             for x in range(0,10):
                 pointToSend = pointScale(viewBox, outBox, seg.point(x/10.))
                 stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "},")
+                numPoints += 1
                 stringToReturn += ('\n')
                 currentPosition = seg.point(i)
                 if not(markerDown):
@@ -86,7 +94,14 @@ for path in paths:
                     stringToReturn += "{-10,0},"
                     stringToReturn += ('\n')
                     markerDown = True
+                    numPoints += 1
 
+
+stringToReturn += "-20, 0},\n"
+stringToReturn += "{init_pos.x, init_pos.y}\n"
+numPoints += 2
+stringToReturn += "};\n\n"
+stringToReturn += "const int num_path = {};\n".format(numPoints)
 stringToReturn +="//PYTHONENDFLAG"
 
 # Read the current CPP file
