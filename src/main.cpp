@@ -29,8 +29,8 @@ const int servo_erase = 145;
 
 const int eraser_offset = -18; //mm
 // Maximum speed to run motors
-const int max_speed = 500;
-const int max_accel = max_speed * 3;
+const int max_speed = 400;
+const int max_accel = max_speed * 2;
 
 const int servo_pin = 10; // Only 9 & 10 are supported
 
