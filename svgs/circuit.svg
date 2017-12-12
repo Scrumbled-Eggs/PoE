@@ -1,0 +1,27 @@
+<svg width="450" height="300" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <metadata id="metadata7">image/svg+xml</metadata>
+
+ <g>
+  <title>background</title>
+  <rect fill="none" id="canvas_background" height="402" width="582" y="-1" x="-1"/>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <path fill="none" fill-opacity="0.75" fill-rule="evenodd" stroke="black" stroke-width="1.25" stroke-linejoin="round" stroke-miterlimit="4" id="path2812" d="m125.416397,210.573761l0,21.724625m0,-147.174118l0,20.740822l5.688538,4.604568l-11.227913,4.604568l11.227913,4.604561l-11.227913,4.604584l11.227913,4.604553l-11.227913,4.604568l5.539375,4.604584l0,38.78299"/>
+  <path fill="none" fill-rule="nonzero" stroke="black" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="4" stroke-dashoffset="0" d="m141.791306,193.699646a16.5,16.5 0 1 1 -33,0a16.5,16.5 0 1 1 33,0z" id="path2814"/>
+  <path fill="none" fill-opacity="0.75" fill-rule="evenodd" stroke="black" stroke-width="1.25" stroke-miterlimit="4" id="path2835" d="m41.25,175.010727l0,27.239273m0,-68.25l0,22.799164"/>
+  <g stroke-width="0.930493" stroke-miterlimit="4" id="g2849" transform="matrix(1.804654,0,0,1,-419.5754,18.91332)">
+   <path fill="none" fill-opacity="0.75" fill-rule="evenodd" stroke="black" stroke-width="0.930493" stroke-linecap="round" stroke-miterlimit="4" id="path2851" d="m246.515106,137.751923l17.677673,0"/>
+   <path fill="none" fill-opacity="0.75" fill-rule="evenodd" stroke="black" stroke-width="0.930493" stroke-linecap="round" stroke-miterlimit="4" id="use2853" d="m246.515106,149.751923l17.677673,0"/>
+  </g>
+  <path fill="none" fill-rule="nonzero" stroke="black" stroke-width="1.25" stroke-linejoin="round" stroke-miterlimit="4" stroke-dashoffset="0" id="rect1891" d="m427,270l-220,0l0,-120.298096m0,-12.242569l0,-103.459335l135.5,0c0,0 0.0625,-9.25 8.375,-9.25c8.3125,0 8.375,9.25 8.375,9.25c0,0 0.0625,-9.25 8.375,-9.25c8.1875,0 8.375,9.25 8.375,9.25c0,0 0.0625,-9.25 8.375,-9.25c8.1875,0 8.375,9.25 8.375,9.25c0,0 0.1875,-9.25 8.375,-9.25c8.0625,0 8.375,9.25 8.375,9.25l17.5,0"/>
+  <g stroke-width="1.25" stroke-miterlimit="4" id="g2788">
+   <path fill="none" fill-opacity="0.75" fill-rule="evenodd" stroke="black" stroke-width="1.25" stroke-linecap="round" stroke-miterlimit="4" d="m198.515106,137.751923l17.677673,0" id="path2780"/>
+   <use stroke-width="1.25" stroke-miterlimit="4" x="0" y="12" xlink:href="#path2780" id="use2782" width="500" height="300"/>
+  </g>
+  <path fill="none" fill-opacity="0.75" fill-rule="evenodd" stroke="black" stroke-width="1.25" stroke-linejoin="round" stroke-miterlimit="4" id="path2786" d="m275.25,172.499115l0,49.301788m0,12.088135l0,36.110962m0,-235.678299l0,33.46875l5.688538,4.604568l-11.227905,4.604568l11.227905,4.604568l-11.227905,4.604561l11.227905,4.604576l-11.227905,4.604568l5.539368,4.604568l0,38.78299"/>
+  <use stroke-width="1.25" stroke-miterlimit="4" height="300" width="500" id="use2792" xlink:href="#g2788" y="84" x="67.853561"/>
+  <path fill="none" fill-opacity="0.75" fill-rule="evenodd" stroke="black" stroke-width="1.25" stroke-linejoin="round" stroke-miterlimit="4" id="path2798" d="m275.236176,117.654839l50.469757,0l0,51.881386l6.363953,4.738251l-12.020813,4.738251l12.020813,4.738251l-12.020813,4.738251l12.020813,4.738251l-12.020813,4.738251l5.65686,4.738235l0,67.420761"/>
+  <path fill="none" fill-rule="nonzero" stroke="black" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="4" stroke-dashoffset="0" d="m291.625,155.625a16.5,16.5 0 1 1 -33,0a16.5,16.5 0 1 1 33,0z" id="path2804"/>
+ </g>
+</svg>
