@@ -53,7 +53,11 @@ def pointScale(svgBox, outBox, point):
     ### Scale a point from the size/shape of svg box to the size/shape of outBox
     xScale = (outBox[2]-outBox[0])/(svgBox[2]-svgBox[0])
     yScale = (outBox[3]-outBox[1])/(svgBox[3]-svgBox[1])
-    return(int(point.real *xScale * 3) + 600, int(point.imag*yScale*3) + 600)
+    outPoint = (int(point.real *xScale) + outBox[0], int(point.imag*yScale)+outBox[1])
+    # print(outPoint)
+    assert outPoint[0] > 150 and outPoint[0] < 1100
+    assert outPoint[1] > 0 and outPoint[1] < 1200
+    return outPoint
 
 paths, attributes = svg2paths(args.filename)
 
