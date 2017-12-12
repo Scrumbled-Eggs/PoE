@@ -29,9 +29,11 @@ doc = minidom.parse(poesvg)  # parseString also exists
 
 # Get the svg width and height from an SVG made using the SO toolchain
 svgWidth = [el.getAttribute('width') for el
-        in doc.getElementsByTagName('rect')]
+        in doc.getElementsByTagName('rect')] or [el.getAttribute('width') for el
+                in doc.getElementsByTagName('svg')]
 svgHeight =[el.getAttribute('height') for el
-        in doc.getElementsByTagName('rect')]
+        in doc.getElementsByTagName('rect')] or [el.getAttribute('height') for el
+                in doc.getElementsByTagName('svg')]
 doc.unlink()
 
 # Convert the svg shape into the box format
@@ -51,13 +53,22 @@ def pointScale(svgBox, outBox, point):
     ### Scale a point from the size/shape of svg box to the size/shape of outBox
     xScale = (outBox[2]-outBox[0])/(svgBox[2]-svgBox[0])
     yScale = (outBox[3]-outBox[1])/(svgBox[3]-svgBox[1])
-    return(int(point.real *xScale * 3) + 600, int(point.imag*yScale*3) + 600)
+    outPoint = (int(point.real *xScale) + outBox[0], int(point.imag*yScale)+outBox[1])
+    # print(outPoint)
+    assert outPoint[0] > 150 and outPoint[0] < 1100
+    assert outPoint[1] > 0 and outPoint[1] < 1200
+    return outPoint
 
 paths, attributes = svg2paths(args.filename)
+
+stringToReturn += "const int path[][2] =   {\n"
+
+numPoints = 0
+
 for path in paths:
     for seg in path:
-
         if currentPosition != seg.point(0):
+            numPoints += 1
             # If the start point of a segment is off, pen up
             stringToReturn += "{-20,0},"
             stringToReturn += ('\n')
@@ -67,6 +78,7 @@ for path in paths:
             for i in range(0,2):
                 pointToSend = pointScale(viewBox, outBox, seg.point(i))
                 stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "},")
+                numPoints += 1
                 stringToReturn += ('\n')
                 currentPosition = seg.point(i)
                 if not(markerDown):
@@ -74,11 +86,13 @@ for path in paths:
                     stringToReturn += "{-10,0},"
                     stringToReturn += ('\n')
                     markerDown = True
+                    numPoints += 1
 
         if(type(seg)==quadType):
             for x in range(0,10):
                 pointToSend = pointScale(viewBox, outBox, seg.point(x/10.))
                 stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "},")
+                numPoints += 1
                 stringToReturn += ('\n')
                 currentPosition = seg.point(i)
                 if not(markerDown):
@@ -86,7 +100,14 @@ for path in paths:
                     stringToReturn += "{-10,0},"
                     stringToReturn += ('\n')
                     markerDown = True
+                    numPoints += 1
 
+
+stringToReturn += "{-20, 0},\n"
+stringToReturn += "{init_pos.x, init_pos.y}\n"
+numPoints += 2
+stringToReturn += "};\n\n"
+stringToReturn += "const int num_path = {};\n".format(numPoints)
 stringToReturn +="//PYTHONENDFLAG"
 
 # Read the current CPP file
