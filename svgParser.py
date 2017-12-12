@@ -110,6 +110,12 @@ stringToReturn += "};\n\n"
 stringToReturn += "const int num_path = {};\n".format(numPoints)
 stringToReturn +="//PYTHONENDFLAG"
 
+print("num points: {}".format(numPoints))
+arduinoMemSize = 1800
+intNumBytes = 2
+maxPoints = int((arduinoMemSize / intNumBytes))
+assert numPoints < maxPoints, "error, svg has too many points too large ({} max)".format(maxPoints)
+
 # Read the current CPP file
 with open('src/main.cpp') as f:
     cppData = f.read()
