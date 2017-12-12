@@ -2,8 +2,6 @@
 #include <Servo.h>
 #include "SpeedyStepper.h"
 
-
-
 SpeedyStepper leftMotor;
 SpeedyStepper rightMotor;
 
@@ -31,9 +29,12 @@ const int servo_erase = 145;
 
 const int eraser_offset = -18; //mm
 // Maximum speed to run motors
-const int max_speed = 50;
+const int max_speed = 500;
+const int max_accel = max_speed * 3;
 
 const int servo_pin = 10; // Only 9 & 10 are supported
+
+#define DEBUG false
 /***** End Config *****/
 
 
@@ -43,8 +44,8 @@ const float steps_per_mm = 5; /* 200.0 steps per rotation / 40.0 Circumference i
 LR_Step xy_to_lr(XY_Pos xy){
   LR_Step lr;
 
-  lr.l = 1.0 * sqrt((xy.x*xy.x) + (xy.y*xy.y)) * steps_per_mm;
-  lr.r = 1.0 * sqrt(((interspool_spacing - xy.x)*(interspool_spacing - xy.x)) + (xy.y*xy.y)) * steps_per_mm;
+  lr.l = (int)(1.0 * sqrt((xy.x*xy.x) + (xy.y*xy.y)) * steps_per_mm);
+  lr.r = (int)(1.0 * sqrt(((interspool_spacing - xy.x)*(interspool_spacing - xy.x)) + (xy.y*xy.y)) * steps_per_mm);
   return lr;
 }
 
@@ -58,9 +59,9 @@ LR_Step cur_len = xy_to_lr(init_pos);
 // -10 for marker engage
 // -20 for marker disengage
 
-const int num_path = 27;
-const float path[][2] =   {
-  //PYTHONSTARTFLAG 
+const int num_path = 302;
+const int path[][2] =   {
+  //PYTHONSTARTFLAG
 {-20,0},
 {619,624},
 {-10,0},
@@ -362,6 +363,8 @@ const float path[][2] =   {
 {720,613},
 {720,613},
 //PYTHONENDFLAG
+{-20, 0},
+{init_pos.x, init_pos.y}
 };
 
 
@@ -379,7 +382,7 @@ void run_motors(LR_Step delta_l){
 
   if(delta_l.l == 0 && delta_l.r == 0) return;
 
-  const bool DEBUG_MOTORS = true;
+  const bool DEBUG_MOTORS = false;
 
   leftMotor.setSpeedInStepsPerSecond((int)(1.0 * max_speed * abs(delta_l.l) / max(abs(delta_l.l), abs(delta_l.r))));
   rightMotor.setSpeedInStepsPerSecond((int)(1.0 * max_speed * abs(delta_l.r) / max(abs(delta_l.l), abs(delta_l.r))));
@@ -425,11 +428,16 @@ void run_motors(LR_Step delta_l){
 void set_lengths(LR_Step desired_lr){
   /* Moves the motors to set the string to the desired lengths in steps */
 
-  Serial.print("len: ");
-  Serial.print(desired_lr.l);
-  Serial.print(" ");
-  Serial.print(desired_lr.r);
-  Serial.print(" ");
+  if (DEBUG) {
+    Serial.print("len: ");
+    Serial.print(String(desired_lr.l));
+    Serial.print(" ");
+    Serial.print(String(desired_lr.r));
+    Serial.println(" ");
+    Serial.println();
+  }
+
+  // while(true){}
 
   LR_Step delta_lr = {
     desired_lr.l - cur_len.l,
@@ -438,19 +446,22 @@ void set_lengths(LR_Step desired_lr){
 
   run_motors(delta_lr);
 
-  Serial.print("cur len: ");
-  Serial.print(cur_len.l);
-  Serial.print(" ");
-  Serial.print(cur_len.r);
-  Serial.println(" ");
+  if (DEBUG) {
+    Serial.print("cur len: ");
+    Serial.print(cur_len.l);
+    Serial.print(" ");
+    Serial.print(cur_len.r);
+    Serial.println(" ");
+  }
 }
 
 
 void set_position(XY_Pos xy){
   /* Moves the marker to the position x,y
      x and y are in mm from top left corner */
-
-  Serial.print("xy: " + String(xy.x) + " " + String(xy.y) + " ");
+  if (DEBUG) {
+    Serial.println("xy: " + String(xy.x) + " " + String(xy.y) + " ");
+  }
 
   LR_Step new_lr = {
     (int)(1.0 * sqrt( (xy.x*xy.x) + (xy.y*xy.y) ) * steps_per_mm),
@@ -471,11 +482,11 @@ void setup() {
   leftMotor.connectToPins(2,5); // X on shield
   rightMotor.connectToPins(3,6); // Y on shield
 
-  leftMotor.setSpeedInStepsPerSecond(500);
-  rightMotor.setSpeedInStepsPerSecond(500);
+  leftMotor.setSpeedInStepsPerSecond(max_speed);
+  rightMotor.setSpeedInStepsPerSecond(max_speed);
 
-  leftMotor.setAccelerationInStepsPerSecondPerSecond(700);
-  rightMotor.setAccelerationInStepsPerSecondPerSecond(700);
+  leftMotor.setAccelerationInStepsPerSecondPerSecond(max_accel);
+  rightMotor.setAccelerationInStepsPerSecondPerSecond(max_accel);
 
 
   tool_servo.attach(servo_pin);
@@ -496,32 +507,43 @@ void setup() {
     // Lots of messy stuff here.
     if (path[i][0] == -10){
       tool_servo.write(servo_marker);
-      Serial.println("Marker Down");
+      if (DEBUG) {
+        Serial.println("Marker Down");
+      }
       erasing = false;
       delay(500);
     } else if (path[i][0] == -20){
       tool_servo.write(servo_off);
-      Serial.println("Marker Up");
+      if (DEBUG) {
+        Serial.println("Marker Up");
+      }
       erasing = false;
       delay(500);
     } else if (path[i][0] == -30){
       tool_servo.write(servo_erase);
-      Serial.println("Marker Erase");
+      if (DEBUG) {
+        Serial.println("Marker Erase");
+      }
       erasing = true;
       delay(500);
     } else {
-      Serial.println("setting xy");
       next_xy.x = path[i][0];
-      next_xy.y = path[i][1];
+      next_xy.y = path[i][1] * -1;
+
 
       if (erasing){
         next_xy.y += eraser_offset;
+      }
+      if (DEBUG) {
+        Serial.print(next_xy.y);
+        Serial.print(' ');
+        Serial.println(next_xy.x);
       }
 
       set_position(next_xy);
     }
     // Let the motors rest
-    delay(100);
+    // delay(100);
   }
 
   // To enable the motor shield, write LOW to pin 8
