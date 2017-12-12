@@ -103,7 +103,7 @@ for path in paths:
                     numPoints += 1
 
 
-stringToReturn += "-20, 0},\n"
+stringToReturn += "{-20, 0},\n"
 stringToReturn += "{init_pos.x, init_pos.y}\n"
 numPoints += 2
 stringToReturn += "};\n\n"
