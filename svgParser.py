@@ -30,7 +30,7 @@ svgHeight = int(''.join(list(filter(str.isdigit, svgHeight[0]))))
 viewBox=[0,0,svgWidth, svgHeight]
 outBox = [0,0,100,100]
 stringToReturn = ""
-stringToReturn += "//PYTHONSTARTFLAG"
+stringToReturn += "//PYTHONSTARTFLAG \n"
 
 def pointScale(svgBox, outBox, point):
     xScale = (outBox[2]-outBox[0])/(svgBox[2]-svgBox[0])
@@ -44,20 +44,21 @@ for path in paths:
             for i in range(0,2):
                 pointToSend = pointScale(viewBox, outBox, seg.point(i))
                 # print(seg.point(i))
-                stringToReturn += ("(" + str(pointToSend[0]) + "," + str(pointToSend[1]) + ")")
-                stringToReturn += (',')
+                stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
+                stringToReturn += ('\n')
 
         if(type(seg)==quadType):
             for x in range(0,10):
                 pointToSend = pointScale(viewBox, outBox, seg.point(x/10.))
-                stringToReturn += ("(" + str(pointToSend[0]) + "," + str(pointToSend[1]) + ")")
-                stringToReturn += (',')
+                stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
+                stringToReturn += ('\n')
 
 stringToReturn +="//PYTHONENDFLAG"
-print(stringToReturn)
+# print(stringToReturn)
 
 with open('src/main.cpp') as f:
-    cpp_data = f.read()
-# print(cpp_data)
-cpp_data = re.sub('//PYTHONSTARTFLAG.*?//PYTHONENDFLAG',stringToReturn,cpp_data,flags=re.DOTALL)
-# print(cpp_data)
+    cppData = f.read()
+cppData = re.sub('//PYTHONSTARTFLAG.*?//PYTHONENDFLAG',stringToReturn,cppData,flags=re.DOTALL)
+
+cppFile = open('src/main.cpp', 'w')
+cppFile.write(cppData)
