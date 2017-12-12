@@ -59,14 +59,33 @@ def pointScale(svgBox, outBox, point):
     assert outPoint[1] > 0 and outPoint[1] < 1200
     return outPoint
 
+boundingBox = [10000,10000,0,0]
+
+def testNewBindingBox(pointToTest):
+    if pointToTest[0] < boundingBox[0]: boundingBox[0] = pointToTest[0]
+    if pointToTest[0] > boundingBox[2]: boundingBox[2] = pointToTest[0]
+    if pointToTest[1] < boundingBox[1]: boundingBox[1] = pointToTest[1]
+    if pointToTest[1] > boundingBox[3]: boundingBox[3] = pointToTest[1]
+
+
 paths, attributes = svg2paths(args.filename)
 
 stringToReturn += "const int path[][2] =   {\n"
 
 numPoints = 0
 
+intNumBytes = 2
+arduinoMemSize = 1800
+
+maxPoints = int((arduinoMemSize / intNumBytes))
+
 for path in paths:
+    if numPoints > maxPoints - 100:
+        print("WARN: too many points")
+        break
+
     for seg in path:
+
         if currentPosition != seg.point(0):
             numPoints += 1
             # If the start point of a segment is off, pen up
@@ -77,6 +96,7 @@ for path in paths:
         if(type(seg)==lineType):
             for i in range(0,2):
                 pointToSend = pointScale(viewBox, outBox, seg.point(i))
+                testNewBindingBox(pointToSend)
                 stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "},")
                 numPoints += 1
                 stringToReturn += ('\n')
@@ -91,6 +111,7 @@ for path in paths:
         if(type(seg)==quadType):
             for x in range(0,10):
                 pointToSend = pointScale(viewBox, outBox, seg.point(x/10.))
+                testNewBindingBox(pointToSend)
                 stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "},")
                 numPoints += 1
                 stringToReturn += ('\n')
@@ -111,10 +132,9 @@ stringToReturn += "const int num_path = {};\n".format(numPoints)
 stringToReturn +="//PYTHONENDFLAG"
 
 print("num points: {}".format(numPoints))
-arduinoMemSize = 1800
-intNumBytes = 2
-maxPoints = int((arduinoMemSize / intNumBytes))
 assert numPoints < maxPoints, "error, svg has too many points too large ({} max)".format(maxPoints)
+
+print(boundingBox)
 
 # Read the current CPP file
 with open('src/main.cpp') as f:
