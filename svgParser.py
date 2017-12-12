@@ -36,10 +36,22 @@ svgHeight =[el.getAttribute('height') for el
                 in doc.getElementsByTagName('svg')]
 doc.unlink()
 
+print(svgWidth)
+print(svgHeight)
+
 # Convert the svg shape into the box format
-svgWidth = int(''.join(list(filter(str.isdigit, svgWidth[0]))))
-svgHeight = int(''.join(list(filter(str.isdigit, svgHeight[0]))))
+try:
+    svgWidth = int(svgWidth[0])
+    svgHeight = int(svgHeight[0])
+except:
+    print('error reading svgheight and width. Retrying...')
+    svgWidth = int(''.join(list(filter(str.isdigit, svgWidth[0]))))
+    svgHeight = int(''.join(list(filter(str.isdigit, svgHeight[0]))))
+
 viewBox=[0,0,svgWidth, svgHeight]
+
+print(svgWidth)
+print(svgHeight)
 
 # Initialize marker control variables
 currentPosition = (0,0)
@@ -50,6 +62,7 @@ stringToReturn = ""
 stringToReturn += "//PYTHONSTARTFLAG \n"
 
 def pointScale(svgBox, outBox, point):
+    # print(point)
     ### Scale a point from the size/shape of svg box to the size/shape of outBox
     xScale = (outBox[2]-outBox[0])/(svgBox[2]-svgBox[0])
     yScale = (outBox[3]-outBox[1])/(svgBox[3]-svgBox[1])
