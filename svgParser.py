@@ -35,6 +35,9 @@ svgWidth = int(''.join(list(filter(str.isdigit, svgWidth[0]))))
 svgHeight = int(''.join(list(filter(str.isdigit, svgHeight[0]))))
 viewBox=[0,0,svgWidth, svgHeight]
 
+currentPosition = (0,0)
+markerDown = True
+
 stringToReturn = ""
 stringToReturn += "//PYTHONSTARTFLAG \n"
 
@@ -46,18 +49,31 @@ def pointScale(svgBox, outBox, point):
 paths, attributes = svg2paths('PoE.svg')
 for path in paths:
     for seg in path:
+
+        if currentPosition != seg.point(0):
+            # If the start point of a segment is off, pen up
+            stringToReturn += "{-10,0}"
+            markerDown = False
+
         if(type(seg)==lineType):
             for i in range(0,2):
                 pointToSend = pointScale(viewBox, outBox, seg.point(i))
-                # print(seg.point(i))
                 stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
                 stringToReturn += ('\n')
+                currentPosition = seg.point(i)
+                if !markerDown:
+                    # If the marker is up, set it down
+                    stringToReturn += "{-20,0}"
 
         if(type(seg)==quadType):
             for x in range(0,10):
                 pointToSend = pointScale(viewBox, outBox, seg.point(x/10.))
                 stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
                 stringToReturn += ('\n')
+                currentPosition = seg.point(i)
+                if !markerDown:
+                    # If the marker is up, set it down
+                    stringToReturn += "{-20,0}"
 
 stringToReturn +="//PYTHONENDFLAG"
 
