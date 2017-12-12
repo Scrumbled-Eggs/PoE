@@ -51,7 +51,7 @@ def pointScale(svgBox, outBox, point):
     ### Scale a point from the size/shape of svg box to the size/shape of outBox
     xScale = (outBox[2]-outBox[0])/(svgBox[2]-svgBox[0])
     yScale = (outBox[3]-outBox[1])/(svgBox[3]-svgBox[1])
-    return(int(point.real *xScale), int(point.imag*yScale))
+    return(int(point.real *xScale * 3) + 600, int(point.imag*yScale*3) + 600)
 
 paths, attributes = svg2paths(args.filename)
 for path in paths:
@@ -59,31 +59,31 @@ for path in paths:
 
         if currentPosition != seg.point(0):
             # If the start point of a segment is off, pen up
-            stringToReturn += "{-10,0}"
+            stringToReturn += "{-20,0},"
             stringToReturn += ('\n')
             markerDown = False
 
         if(type(seg)==lineType):
             for i in range(0,2):
                 pointToSend = pointScale(viewBox, outBox, seg.point(i))
-                stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
+                stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "},")
                 stringToReturn += ('\n')
                 currentPosition = seg.point(i)
                 if not(markerDown):
                     # If the marker is up, set it down
-                    stringToReturn += "{-20,0}"
+                    stringToReturn += "{-10,0},"
                     stringToReturn += ('\n')
                     markerDown = True
 
         if(type(seg)==quadType):
             for x in range(0,10):
                 pointToSend = pointScale(viewBox, outBox, seg.point(x/10.))
-                stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "}")
+                stringToReturn += ("{" + str(pointToSend[0]) + "," + str(pointToSend[1]) + "},")
                 stringToReturn += ('\n')
                 currentPosition = seg.point(i)
                 if not(markerDown):
                     # If the marker is up, set it down
-                    stringToReturn += "{-20,0}"
+                    stringToReturn += "{-10,0},"
                     stringToReturn += ('\n')
                     markerDown = True
 
