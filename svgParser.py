@@ -9,9 +9,16 @@ quadType = type(QuadraticBezier(start=(0+0j), control=(.5+.5j), end=(1+1j)))
 
 parser = argparse.ArgumentParser(description='Take a file and scale.')
 parser.add_argument('filename')
+parser.add_argument('minx', type=int)
+parser.add_argument('miny', type=int)
+parser.add_argument('maxx', type=int)
+parser.add_argument('maxy', type=int)
 args = parser.parse_args()
 
+outBox = [args.minx,args.miny, args.maxx, args.maxy]
+
 # Use the second solution on this stack overflow post to guarandtee better results
+# https://stackoverflow.com/questions/13329125/removing-transforms-in-svg-files
 
 poesvg = open(args.filename, 'r')
 
@@ -24,11 +31,10 @@ svgHeight =[el.getAttribute('height') for el
         in doc.getElementsByTagName('rect')]
 
 doc.unlink()
-# print(viewBox) # maps to 0 0 100 100 on our coordinates
 svgWidth = int(''.join(list(filter(str.isdigit, svgWidth[0]))))
 svgHeight = int(''.join(list(filter(str.isdigit, svgHeight[0]))))
 viewBox=[0,0,svgWidth, svgHeight]
-outBox = [0,0,100,100]
+
 stringToReturn = ""
 stringToReturn += "//PYTHONSTARTFLAG \n"
 
@@ -54,7 +60,6 @@ for path in paths:
                 stringToReturn += ('\n')
 
 stringToReturn +="//PYTHONENDFLAG"
-# print(stringToReturn)
 
 with open('src/main.cpp') as f:
     cppData = f.read()

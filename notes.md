@@ -66,3 +66,26 @@ Visicut + inkscape for lasercutting
 IGNORE THE DATASHEET!
 
 Red-Black and Green-Blue are the coil pairs.
+
+# Running Demo
+
+Example:
+python svgParser.py method-draw-image.svg 0 0 100 100
+
+call python on our script with the arguments:
+* image to draw
+* minimum x value
+* minimum y value
+* maximum x value
+* maximum y value
+
+This will change the cpp main file to have the path that will draw what you want. Theoreticall, flashing that code will draw what you want where you want.
+
+
+## To get your SVG ready for plotting:
+    Load your SVG in Method Draw http://editor.method.ac (File > Open Image)
+    Ungroup your elements (Object > Ungroup elements) you might have to do this more than once.
+    Select your path
+    Reorient the path (Object > Reorient Paths).
+    Save your image (File > Save Image) If it appears in a new window you can right click and "Save Image as..."
+
